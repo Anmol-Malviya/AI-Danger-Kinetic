@@ -127,11 +127,21 @@ class AIDangerKineticModel:
         text_model_path = os.path.join(self.models_dir, "text_model.pkl")
         
         # 1. URL Model Training
+        loaded_url = False
         if os.path.exists(url_model_path):
-            print("Loading pre-trained URL classifier...")
-            with open(url_model_path, "rb") as f:
-                self.url_model = pickle.load(f)
-        else:
+            try:
+                print("Loading pre-trained URL classifier...")
+                with open(url_model_path, "rb") as f:
+                    self.url_model = pickle.load(f)
+                # Quick verification check
+                _ = self.url_model.predict([[0]*11])
+                loaded_url = True
+                print("[OK] URL classifier loaded successfully.")
+            except Exception as e:
+                print(f"[WARN] Failed to load pre-trained URL classifier: {e}. Retraining...")
+                self.url_model = None
+
+        if not loaded_url:
             import pandas as pd
             print("Training URL classifier...")
             dataset_path = os.path.join(os.path.dirname(self.models_dir), "dataset", "urls.csv")
@@ -153,16 +163,29 @@ class AIDangerKineticModel:
             model.fit(X, y)
             
             self.url_model = model
-            with open(url_model_path, "wb") as f:
-                pickle.dump(model, f)
-            print("URL classifier trained and saved.")
+            try:
+                with open(url_model_path, "wb") as f:
+                    pickle.dump(model, f)
+                print("URL classifier trained and saved.")
+            except Exception as e:
+                print(f"[WARN] Failed to save trained URL classifier: {e}")
             
         # 2. Text Model Training
+        loaded_text = False
         if os.path.exists(text_model_path):
-            print("Loading pre-trained text classifier...")
-            with open(text_model_path, "rb") as f:
-                self.text_pipeline = pickle.load(f)
-        else:
+            try:
+                print("Loading pre-trained text classifier...")
+                with open(text_model_path, "rb") as f:
+                    self.text_pipeline = pickle.load(f)
+                # Quick verification check
+                _ = self.text_pipeline.predict(["test text"])
+                loaded_text = True
+                print("[OK] Text classifier loaded successfully.")
+            except Exception as e:
+                print(f"[WARN] Failed to load pre-trained text classifier: {e}. Retraining...")
+                self.text_pipeline = None
+
+        if not loaded_text:
             import pandas as pd
             print("Training text classifier...")
             dataset_path = os.path.join(os.path.dirname(self.models_dir), "dataset", "messages.csv")
@@ -179,9 +202,12 @@ class AIDangerKineticModel:
             pipeline.fit(df["text"], df["label"])
             
             self.text_pipeline = pipeline
-            with open(text_model_path, "wb") as f:
-                pickle.dump(pipeline, f)
-            print("Text classifier trained and saved.")
+            try:
+                with open(text_model_path, "wb") as f:
+                    pickle.dump(pipeline, f)
+                print("Text classifier trained and saved.")
+            except Exception as e:
+                print(f"[WARN] Failed to save trained text classifier: {e}")
 
     def predict_url(self, url: str) -> dict:
         """Predict whether a URL is a scam/phishing attempt."""
