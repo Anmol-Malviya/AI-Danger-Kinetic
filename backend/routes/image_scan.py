@@ -183,3 +183,6 @@ async def scan_image(file: UploadFile = File(...), user_id: Optional[str] = Form
                 Path(preprocess_info["ocr_path"]).unlink(missing_ok=True)
         except Exception:
             pass
+        # Force garbage collection to release memory back to OS
+        import gc
+        gc.collect()

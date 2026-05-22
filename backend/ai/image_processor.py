@@ -42,8 +42,8 @@ def preprocess_image(image_path: str) -> dict:
     # ── Step 2: Grayscale ─────────────────────────────────────────────────────
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    # ── Step 3: Noise reduction (Non-local Means) ─────────────────────────────
-    denoised = cv2.fastNlMeansDenoising(gray, h=10, templateWindowSize=7, searchWindowSize=21)
+    # ── Step 3: Noise reduction (Lightweight Gaussian Blur to replace heavy fastNlMeansDenoising) ──
+    denoised = cv2.GaussianBlur(gray, (3, 3), 0)
 
     # ── Step 4: Sharpening (unsharp mask) ────────────────────────────────────
     blurred = cv2.GaussianBlur(denoised, (0, 0), 3)

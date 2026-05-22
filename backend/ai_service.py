@@ -2,8 +2,9 @@ import os
 import re
 import pickle
 import urllib.parse
-import pandas as pd
 import numpy as np
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module="sklearn")
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
@@ -131,6 +132,7 @@ class AIDangerKineticModel:
             with open(url_model_path, "rb") as f:
                 self.url_model = pickle.load(f)
         else:
+            import pandas as pd
             print("Training URL classifier...")
             dataset_path = os.path.join(os.path.dirname(self.models_dir), "dataset", "urls.csv")
             if not os.path.exists(dataset_path):
@@ -161,6 +163,7 @@ class AIDangerKineticModel:
             with open(text_model_path, "rb") as f:
                 self.text_pipeline = pickle.load(f)
         else:
+            import pandas as pd
             print("Training text classifier...")
             dataset_path = os.path.join(os.path.dirname(self.models_dir), "dataset", "messages.csv")
             if not os.path.exists(dataset_path):
@@ -183,7 +186,7 @@ class AIDangerKineticModel:
     def predict_url(self, url: str) -> dict:
         """Predict whether a URL is a scam/phishing attempt."""
         features = extract_url_features(url)
-        df_features = pd.DataFrame([features])
+        X_features = [list(features.values())]
         
         # Calculate heuristics base score
         score_heuristics = 0.0
@@ -217,7 +220,7 @@ class AIDangerKineticModel:
 
         # Run ML model prediction
         if self.url_model:
-            prob = self.url_model.predict_proba(df_features)[0][1]
+            prob = self.url_model.predict_proba(X_features)[0][1]
         else:
             prob = min(0.99, score_heuristics)
             
