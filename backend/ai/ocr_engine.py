@@ -83,7 +83,13 @@ def extract_text(image_path: str) -> dict:
 
     # detail=1 returns (bbox, text, confidence)
     with torch.no_grad():
-        results = reader.readtext(str(path), detail=1, paragraph=False)
+        results = reader.readtext(
+            str(path),
+            detail=1,
+            paragraph=False,
+            batch_size=1,
+            canvas_size=640
+        )
 
     word_blocks = []
     lines = []
