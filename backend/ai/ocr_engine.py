@@ -22,6 +22,9 @@ def _get_reader() -> Any:
     if _reader is None:
         try:
             import torch  # type: ignore
+            # Minimize threading overhead to keep RAM usage low on resource-constrained containers
+            torch.set_num_threads(1)
+            torch.set_num_interop_threads(1)
             import easyocr  # type: ignore
         except ImportError as e:
             logger.error(f"EasyOCR or PyTorch not installed. Run: pip install easyocr torch. Error: {e}")
