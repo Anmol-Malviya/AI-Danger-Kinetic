@@ -1,72 +1,53 @@
 """
-AI Danger Kinetic — OCR Engine
-Wraps EasyOCR to extract text and bounding boxes from preprocessed images.
-Supports English (extendable to Hindi, etc.)
+AI Danger Kinetic — OCR Engine (Tesseract)
+Wraps pytesseract to extract text and bounding boxes from preprocessed images.
+Optimized for ultra-low memory usage on constrained containers (e.g. Render Free Tier).
 """
 
 import logging
-import warnings
+import shutil
 from pathlib import Path
-from typing import Optional, Any
-
-# Suppress PyTorch user warning regarding dataloader pin_memory on systems without GPU acceleration
-warnings.filterwarnings("ignore", category=UserWarning, module="torch")
+from typing import Optional
+import pytesseract
+from pytesseract import Output
+from PIL import Image
 
 logger = logging.getLogger("ai_danger_kinetic.ocr_engine")
 
-# ── EasyOCR reader instance (instantiated once lazily) ──────────────────────
-_reader: Optional[Any] = None
+# Check if tesseract is installed in the system PATH or common paths
+_tesseract_available: Optional[bool] = None
 
-def _get_reader() -> Any:
-    global _reader
-    if _reader is None:
-        try:
-            import torch  # type: ignore
-            # Minimize threading overhead to keep RAM usage low on resource-constrained containers
-            torch.set_num_threads(1)
-            torch.set_num_interop_threads(1)
-            import easyocr  # type: ignore
-        except ImportError as e:
-            logger.error(f"EasyOCR or PyTorch not installed. Run: pip install easyocr torch. Error: {e}")
-            raise RuntimeError("OCR Engine dependencies (easyocr/torch) are missing.") from e
-
-        gpu_available = torch.cuda.is_available()
-        logger.info(f"Loading EasyOCR model (GPU={gpu_available}, first run may download weights)...")
-        try:
-            _reader = easyocr.Reader(
-                ["en"],          # add "hi" for Hindi support
-                gpu=gpu_available,
-                verbose=False,
-            )
-            logger.info("EasyOCR model ready.")
-        except Exception as e:
-            if gpu_available:
-                logger.warning(f"Failed to initialize EasyOCR with GPU: {e}. Retrying on CPU...")
-                try:
-                    _reader = easyocr.Reader(
-                        ["en"],
-                        gpu=False,
-                        verbose=False,
-                    )
-                    logger.info("EasyOCR model ready (CPU fallback).")
-                except Exception as cpu_err:
-                    logger.exception(f"Failed to initialize EasyOCR with CPU: {cpu_err}")
-                    raise cpu_err
+def is_tesseract_available() -> bool:
+    global _tesseract_available
+    if _tesseract_available is None:
+        cmd = shutil.which("tesseract")
+        if cmd is not None:
+            _tesseract_available = True
+        else:
+            # Check common Windows installation paths as fallback
+            common_paths = [
+                r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+                r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+            ]
+            for path in common_paths:
+                if Path(path).exists():
+                    pytesseract.pytesseract.tesseract_cmd = path
+                    _tesseract_available = True
+                    break
             else:
-                logger.exception(f"Failed to initialize EasyOCR reader: {e}")
-                raise
-    return _reader
-
+                _tesseract_available = False
+    return _tesseract_available
 
 
 def extract_text(image_path: str) -> dict:
     """
-    Extract all visible text from an image using EasyOCR.
+    Extract all visible text from an image using Tesseract OCR.
+    Reconstructs line-level word blocks and phrase bounding boxes for compatibility.
 
     Returns:
         {
             "full_text": str,        — all text joined with newlines
-            "word_blocks": [         — each detected block
+            "word_blocks": [         — each detected line block
                 {"text": str, "confidence": float, "bbox": [x, y, w, h]},
                 ...
             ],
@@ -78,46 +59,75 @@ def extract_text(image_path: str) -> dict:
     if not path.exists():
         raise FileNotFoundError(f"Image not found: {image_path}")
 
-    reader = _get_reader()
-    import torch
+    if not is_tesseract_available():
+        logger.error("Tesseract OCR is not installed or not in system PATH.")
+        raise RuntimeError("OCR Engine dependencies (Tesseract-OCR) are missing.")
 
-    # detail=1 returns (bbox, text, confidence)
-    with torch.no_grad():
-        results = reader.readtext(
-            str(path),
-            detail=1,
-            paragraph=False,
-            batch_size=1,
-            canvas_size=640
-        )
-
-    word_blocks = []
-    lines = []
-
-    for (bbox_pts, text, confidence) in results:
-        text = text.strip()
-        if not text:
-            continue
-
-        # Convert EasyOCR polygon bbox → (x, y, w, h)
-        xs = [int(p[0]) for p in bbox_pts]
-        ys = [int(p[1]) for p in bbox_pts]
-        x, y = min(xs), min(ys)
-        w, h = max(xs) - x, max(ys) - y
-
-        word_blocks.append({
-            "text": text,
-            "confidence": round(float(confidence), 3),
-            "bbox": [x, y, w, h],
-        })
-        lines.append(text)
-
-    full_text = "\n".join(lines)
-
-    logger.info(f"OCR extracted {len(word_blocks)} blocks, {len(full_text)} chars.")
-    return {
-        "full_text": full_text,
-        "word_blocks": word_blocks,
-        "word_count": len(lines),
-        "char_count": len(full_text),
-    }
+    logger.info(f"Running Tesseract OCR on {image_path}...")
+    try:
+        # Load image via Pillow
+        img = Image.open(path)
+        
+        # Get OCR data including bounding boxes, confidence, and line/word structure
+        data = pytesseract.image_to_data(img, output_type=Output.DICT)
+        
+        # Group words by line (block_num, par_num, line_num) to reconstruct lines and phrase-level bounding boxes
+        n_boxes = len(data['text'])
+        line_groups = {}
+        for i in range(n_boxes):
+            text = data['text'][i].strip()
+            # Skip empty text or low-confidence boxes (Tesseract returns -1 for structural blocks)
+            if not text or data['conf'][i] < 0:
+                continue
+                
+            conf = float(data['conf'][i])
+            key = (data['block_num'][i], data['par_num'][i], data['line_num'][i])
+            if key not in line_groups:
+                line_groups[key] = []
+            line_groups[key].append({
+                "text": text,
+                "confidence": conf,
+                "left": data['left'][i],
+                "top": data['top'][i],
+                "width": data['width'][i],
+                "height": data['height'][i],
+            })
+            
+        word_blocks = []
+        lines = []
+        
+        for key in sorted(line_groups.keys()):
+            words_in_line = line_groups[key]
+            line_text = " ".join([w["text"] for w in words_in_line])
+            
+            # Calculate the bounding box for the entire line (minimum box containing all words)
+            x_min = min(w["left"] for w in words_in_line)
+            y_min = min(w["top"] for w in words_in_line)
+            x_max = max(w["left"] + w["width"] for w in words_in_line)
+            y_max = max(w["top"] + w["height"] for w in words_in_line)
+            
+            w_line = x_max - x_min
+            h_line = y_max - y_min
+            
+            # Average confidence of words in the line
+            avg_conf = sum(w["confidence"] for w in words_in_line) / len(words_in_line)
+            
+            word_blocks.append({
+                "text": line_text,
+                "confidence": round(avg_conf / 100.0, 3),
+                "bbox": [x_min, y_min, w_line, h_line],
+            })
+            lines.append(line_text)
+            
+        full_text = "\n".join(lines)
+        logger.info(f"Tesseract OCR extracted {len(word_blocks)} lines, {len(full_text)} chars.")
+        
+        return {
+            "full_text": full_text,
+            "word_blocks": word_blocks,
+            "word_count": len(word_blocks),
+            "char_count": len(full_text),
+        }
+    except Exception as e:
+        logger.exception(f"Tesseract OCR failed: {e}")
+        raise

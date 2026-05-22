@@ -125,12 +125,14 @@ async def lifespan(app: FastAPI):
         print(f"AI Danger Kinetic: Model training error: {e}")
 
     try:
-        print("AI Danger Kinetic: Pre-loading EasyOCR Engine...")
-        from backend.ai.ocr_engine import _get_reader
-        _get_reader()
-        print("[OK] EasyOCR Engine loaded.")
+        print("AI Danger Kinetic: Checking Tesseract OCR availability...")
+        from backend.ai.ocr_engine import is_tesseract_available
+        if is_tesseract_available():
+            print("[OK] Tesseract OCR is available.")
+        else:
+            print("[WARN] Tesseract OCR is not found. Please install Tesseract-OCR.")
     except Exception as e:
-        print(f"[WARN] EasyOCR loading failed: {e}. It will load lazily.")
+        print(f"[WARN] Tesseract availability check failed: {e}")
 
     connect_mongo()
     yield
