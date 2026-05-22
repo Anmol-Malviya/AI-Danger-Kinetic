@@ -11,9 +11,10 @@ import type { UrlScanResult } from "../types";
 
 interface UrlScannerProps {
   onScanComplete: () => void;
+  userId: string | null;
 }
 
-export const UrlScanner: React.FC<UrlScannerProps> = ({ onScanComplete }) => {
+export const UrlScanner: React.FC<UrlScannerProps> = ({ onScanComplete, userId }) => {
   const [urlInput, setUrlInput] = useState("");
   const [isScanning, setIsScanning] = useState(false);
   const [terminalLogs, setTerminalLogs] = useState<string[]>([]);
@@ -60,7 +61,7 @@ export const UrlScanner: React.FC<UrlScannerProps> = ({ onScanComplete }) => {
       const res = await fetch("http://127.0.0.1:8000/scan-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: formattedUrl })
+        body: JSON.stringify({ url: formattedUrl, user_id: userId })
       });
       
       if (res.ok) {

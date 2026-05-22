@@ -21,8 +21,8 @@ def _get_reader() -> Any:
     global _reader
     if _reader is None:
         try:
-            import torch
-            import easyocr
+            import torch  # type: ignore
+            import easyocr  # type: ignore
         except ImportError as e:
             logger.error(f"EasyOCR or PyTorch not installed. Run: pip install easyocr torch. Error: {e}")
             raise RuntimeError("OCR Engine dependencies (easyocr/torch) are missing.") from e

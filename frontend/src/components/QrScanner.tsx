@@ -14,11 +14,12 @@ import type { QrScanResult } from "../types";
 
 interface QrScannerProps {
   onScanComplete: () => void;
+  userId: string | null;
 }
 
 const API_BASE = "http://127.0.0.1:8000";
 
-export const QrScanner: React.FC<QrScannerProps> = ({ onScanComplete }) => {
+export const QrScanner: React.FC<QrScannerProps> = ({ onScanComplete, userId }) => {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
@@ -61,6 +62,7 @@ export const QrScanner: React.FC<QrScannerProps> = ({ onScanComplete }) => {
 
     const formData = new FormData();
     formData.append("file", file);
+    if (userId) formData.append("user_id", userId);
 
     try {
       const res = await fetch(`${API_BASE}/scan-qr`, {

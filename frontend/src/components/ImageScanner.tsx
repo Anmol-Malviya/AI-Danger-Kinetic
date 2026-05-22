@@ -48,11 +48,12 @@ interface ImageScanResult {
 
 interface ImageScannerProps {
   onScanComplete: () => void;
+  userId: string | null;
 }
 
 const API_BASE = "http://127.0.0.1:8000";
 
-export const ImageScanner: React.FC<ImageScannerProps> = ({ onScanComplete }) => {
+export const ImageScanner: React.FC<ImageScannerProps> = ({ onScanComplete, userId }) => {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
@@ -97,6 +98,7 @@ export const ImageScanner: React.FC<ImageScannerProps> = ({ onScanComplete }) =>
 
     const formData = new FormData();
     formData.append("file", file);
+    if (userId) formData.append("user_id", userId);
 
     try {
       const res = await fetch(`${API_BASE}/scan-image`, {

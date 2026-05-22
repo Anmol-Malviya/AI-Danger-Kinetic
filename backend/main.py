@@ -1,13 +1,14 @@
 import uvicorn
 from pathlib import Path
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime, timezone
-from pymongo import MongoClient, DESCENDING
-from pymongo.errors import ConnectionFailure
+from contextlib import asynccontextmanager
+from pymongo import MongoClient, DESCENDING  # type: ignore
+from pymongo.errors import ConnectionFailure  # type: ignore
 import hashlib
 
 from backend.ai_service import ai_service
@@ -55,40 +56,18 @@ def connect_mongo():
 # ─────────────────────────────────────────────
 # In-memory fallback (used if MongoDB is down)
 # ─────────────────────────────────────────────
-fallback_history = [
-    {
-        "id": 1, "type": "URL",
-        "target": "https://www.paypal.com",
-        "threat_level": "safe", "confidence": 4.2,
-        "timestamp": "2026-05-22T18:30:10Z"
-    },
-    {
-        "id": 2, "type": "SMS",
-        "target": "URGENT: Your Chase account is locked. Verify now at http://chase-banking-alert.net/verify",
-        "threat_level": "dangerous", "confidence": 98.4,
-        "timestamp": "2026-05-22T18:35:15Z"
-    },
-    {
-        "id": 3, "type": "URL",
-        "target": "http://netflix-verify-account.info/login",
-        "threat_level": "dangerous", "confidence": 94.1,
-        "timestamp": "2026-05-22T18:42:02Z"
-    },
-    {
-        "id": 4, "type": "Email",
-        "target": "Hey John, did you receive the PDF slides for our review meeting tomorrow?",
-        "threat_level": "safe", "confidence": 12.5,
-        "timestamp": "2026-05-22T18:50:40Z"
-    }
-]
-fallback_counter = 5
+fallback_history: list = []
+fallback_counter = 1
 
 # ─────────────────────────────────────────────
 # Helper: read / write scan history
 # ─────────────────────────────────────────────
-def db_insert_scan(entry: dict):
+def db_insert_scan(entry: dict, user_id: str = None):
     """Insert a scan record. Uses MongoDB if connected, else in-memory list."""
     global fallback_counter
+    if user_id:
+        entry["user_id"] = user_id
+        
     if scan_collection is not None:
         # MongoDB: strip _id so we don't serialize it later
         scan_collection.insert_one({**entry, "timestamp": datetime.now(timezone.utc).isoformat()})
@@ -98,40 +77,63 @@ def db_insert_scan(entry: dict):
         fallback_history.insert(0, entry)
 
 
-def db_get_history(limit: int = 20) -> List[dict]:
+def db_get_history(limit: int = 20, user_id: str = None) -> List[dict]:
     """Fetch latest scan records."""
+    query = {"user_id": user_id} if user_id else {}
     if scan_collection is not None:
         docs = []
-        for doc in scan_collection.find().sort("timestamp", DESCENDING).limit(limit):
+        for doc in scan_collection.find(query).sort("timestamp", DESCENDING).limit(limit):
             doc["id"] = str(doc["_id"])
             del doc["_id"]
             docs.append(doc)
         return docs
+        
+    if user_id:
+        filtered = [x for x in fallback_history if x.get("user_id") == user_id]
+        return filtered[:limit]
     return fallback_history[:limit]
 
 
-def db_get_stats() -> dict:
+def db_get_stats(user_id: str = None) -> dict:
     """Aggregate threat stats across all stored scans."""
+    query = {"user_id": user_id} if user_id else {}
     if scan_collection is not None:
-        total = scan_collection.count_documents({})
-        dangerous = scan_collection.count_documents({"threat_level": "dangerous"})
-        warning   = scan_collection.count_documents({"threat_level": "warning"})
-        safe      = scan_collection.count_documents({"threat_level": "safe"})
+        total = scan_collection.count_documents(query)
+        dangerous = scan_collection.count_documents({**query, "threat_level": "dangerous"})
+        warning   = scan_collection.count_documents({**query, "threat_level": "warning"})
+        safe      = scan_collection.count_documents({**query, "threat_level": "safe"})
     else:
-        total    = len(fallback_history)
-        dangerous = sum(1 for x in fallback_history if x["threat_level"] == "dangerous")
-        warning   = sum(1 for x in fallback_history if x["threat_level"] == "warning")
-        safe      = sum(1 for x in fallback_history if x["threat_level"] == "safe")
+        filtered = [x for x in fallback_history if x.get("user_id") == user_id] if user_id else fallback_history
+        total    = len(filtered)
+        dangerous = sum(1 for x in filtered if x["threat_level"] == "dangerous")
+        warning   = sum(1 for x in filtered if x["threat_level"] == "warning")
+        safe      = sum(1 for x in filtered if x["threat_level"] == "safe")
     return {"total": total, "dangerous": dangerous, "warning": warning, "safe": safe}
 
 
 # ─────────────────────────────────────────────
 # FastAPI App
 # ─────────────────────────────────────────────
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        print("AI Danger Kinetic: Initializing Model Engines...")
+        ai_service.train_models()
+        print("AI Danger Kinetic: ML Models ready for inference.")
+    except Exception as e:
+        print(f"AI Danger Kinetic: Model training error: {e}")
+
+    connect_mongo()
+    yield
+    if mongo_client:
+        mongo_client.close()
+        print("MongoDB connection closed.")
+
 app = FastAPI(
     title="AI Danger Kinetic – Scam & Phishing Detection System",
     description="FastAPI Backend powered by Scikit-learn NLP & Heuristics Engines + MongoDB Atlas",
-    version="2.0.0"
+    version="2.0.0",
+    lifespan=lifespan
 )
 
 app.add_middleware(
@@ -155,23 +157,7 @@ app.mount("/uploads",   StaticFiles(directory=str(_UPLOADS_DIR)),   name="upload
 app.mount("/processed", StaticFiles(directory=str(_PROCESSED_DIR)), name="processed")
 
 
-@app.on_event("startup")
-def startup_event():
-    try:
-        print("AI Danger Kinetic: Initializing Model Engines...")
-        ai_service.train_models()
-        print("AI Danger Kinetic: ML Models ready for inference.")
-    except Exception as e:
-        print(f"AI Danger Kinetic: Model training error: {e}")
 
-    connect_mongo()
-
-
-@app.on_event("shutdown")
-def shutdown_event():
-    if mongo_client:
-        mongo_client.close()
-        print("MongoDB connection closed.")
 
 
 # ─────────────────────────────────────────────
@@ -229,9 +215,11 @@ def login(request: AuthRequest):
 # ─────────────────────────────────────────────
 class UrlScanRequest(BaseModel):
     url: str
+    user_id: Optional[str] = None
 
 class TextScanRequest(BaseModel):
     text: str
+    user_id: Optional[str] = None
 
 
 # ─────────────────────────────────────────────
@@ -250,7 +238,7 @@ def scan_url(request: UrlScanRequest):
             "target": url if len(url) < 60 else url[:57] + "...",
             "threat_level": result["threat_level"],
             "confidence": result["confidence"],
-        })
+        }, request.user_id)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -270,14 +258,14 @@ def scan_text(request: TextScanRequest):
             "target": text if len(text) < 60 else text[:57] + "...",
             "threat_level": result["threat_level"],
             "confidence": result["confidence"],
-        })
+        }, request.user_id)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/scan-qr")
-async def scan_qr(file: UploadFile = File(...)):
+async def scan_qr(file: UploadFile = File(...), user_id: Optional[str] = Form(None)):
     import cv2
     import numpy as np
 
@@ -321,7 +309,7 @@ async def scan_qr(file: UploadFile = File(...)):
             "target": f"QR: {extracted_url[:50]}..." if len(extracted_url) > 50 else f"QR: {extracted_url}",
             "threat_level": result["threat_level"],
             "confidence": result["confidence"],
-        })
+        }, user_id)
         return {"filename": file.filename, "decoded_url": extracted_url, "scan_results": result}
 
     except HTTPException:
@@ -331,8 +319,8 @@ async def scan_qr(file: UploadFile = File(...)):
 
 
 @app.get("/threat-score")
-def get_threat_score():
-    stats = db_get_stats()
+def get_threat_score(user_id: Optional[str] = None):
+    stats = db_get_stats(user_id)
     total    = stats["total"]
     dangerous = stats["dangerous"]
     warning   = stats["warning"]
@@ -370,18 +358,18 @@ def get_threat_score():
         "total_scans": total,
         "metrics": {"safe": safe, "warning": warning, "dangerous": dangerous},
         "description": description,
-        "history": db_get_history(10)
+        "history": db_get_history(10, user_id)
     }
 
 
 # Aliases
 @app.get("/threat-report")
-def get_threat_report():
-    return get_threat_score()
+def get_threat_report(user_id: Optional[str] = None):
+    return get_threat_score(user_id)
 
 @app.get("/dashboard-stats")
-def get_dashboard_stats():
-    return get_threat_score()
+def get_dashboard_stats(user_id: Optional[str] = None):
+    return get_threat_score(user_id)
 
 # Health check
 @app.get("/health")

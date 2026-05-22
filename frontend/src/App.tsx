@@ -82,7 +82,7 @@ const App: React.FC = () => {
   const fetchStats = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/threat-score`);
+      const res = await fetch(`${API_BASE_URL}/threat-score?user_id=${loggedInUser}`);
       if (res.ok) {
         const data: DashboardStats = await res.json();
         setStats(data);
@@ -170,10 +170,10 @@ const App: React.FC = () => {
               setActiveTab={setActiveTab}
             />
           )}
-          {activeTab === "url" && <UrlScanner onScanComplete={handleScanCompleted} />}
-          {activeTab === "text" && <TextScanner onScanComplete={handleScanCompleted} />}
-          {activeTab === "image" && <ImageScanner onScanComplete={handleScanCompleted} />}
-          {activeTab === "qr" && <QrScanner onScanComplete={handleScanCompleted} />}
+          {activeTab === "url" && <UrlScanner onScanComplete={handleScanCompleted} userId={loggedInUser} />}
+          {activeTab === "text" && <TextScanner onScanComplete={handleScanCompleted} userId={loggedInUser} />}
+          {activeTab === "image" && <ImageScanner onScanComplete={handleScanCompleted} userId={loggedInUser} />}
+          {activeTab === "qr" && <QrScanner onScanComplete={handleScanCompleted} userId={loggedInUser} />}
           {activeTab === "extension" && <ExtensionDemo />}
           {activeTab === "docs" && <Docs />}
         </main>

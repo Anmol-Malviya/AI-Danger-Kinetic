@@ -10,9 +10,10 @@ import type { TextScanResult } from "../types";
 
 interface TextScannerProps {
   onScanComplete: () => void;
+  userId: string | null;
 }
 
-export const TextScanner: React.FC<TextScannerProps> = ({ onScanComplete }) => {
+export const TextScanner: React.FC<TextScannerProps> = ({ onScanComplete, userId }) => {
   const [textInput, setTextInput] = useState("");
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<TextScanResult | null>(null);
@@ -28,7 +29,7 @@ export const TextScanner: React.FC<TextScannerProps> = ({ onScanComplete }) => {
       const res = await fetch("http://127.0.0.1:8000/scan-text", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: textInput })
+        body: JSON.stringify({ text: textInput, user_id: userId })
       });
       
       if (res.ok) {

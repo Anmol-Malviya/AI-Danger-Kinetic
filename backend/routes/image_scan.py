@@ -8,7 +8,8 @@ import uuid
 import logging
 from pathlib import Path
 
-from fastapi import APIRouter, File, UploadFile, HTTPException
+from typing import Optional
+from fastapi import APIRouter, File, UploadFile, HTTPException, Form
 from fastapi.responses import JSONResponse
 
 from backend.ai.image_processor import preprocess_image, draw_threat_boxes
@@ -33,7 +34,7 @@ MAX_SIZE_MB   = 15
     summary="Scan screenshot for scams via OCR + AI",
     response_description="Full scam analysis result",
 )
-async def scan_image(file: UploadFile = File(...)):
+async def scan_image(file: UploadFile = File(...), user_id: Optional[str] = Form(None)):
     """
     Accept a screenshot (email / SMS / WhatsApp / phishing page),
     run OCR + NLP + threat scoring, and return a complete analysis.
@@ -124,7 +125,7 @@ async def scan_image(file: UploadFile = File(...)):
                 "target": file.filename or "uploaded_screenshot.png",
                 "threat_level": "warning" if threat["level"] == "suspicious" else threat["level"],
                 "confidence": float(threat["score"]),
-            })
+            }, user_id)
         except Exception as db_err:
             logger.error(f"Failed to log image scan to history: {db_err}")
 
