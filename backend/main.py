@@ -388,6 +388,7 @@ def health():
     mongo_ok = scan_collection is not None
     return {
         "status": "online",
+        "version": "v1.0.1_tesseract_fix",
         "mongodb": "connected" if mongo_ok else "fallback (in-memory)",
         "db": DB_NAME if mongo_ok else "N/A",
         "collection": "scan_history" if mongo_ok else "N/A"
