@@ -79,9 +79,11 @@ def extract_text(image_path: str) -> dict:
         raise FileNotFoundError(f"Image not found: {image_path}")
 
     reader = _get_reader()
+    import torch
 
     # detail=1 returns (bbox, text, confidence)
-    results = reader.readtext(str(path), detail=1, paragraph=False)
+    with torch.no_grad():
+        results = reader.readtext(str(path), detail=1, paragraph=False)
 
     word_blocks = []
     lines = []

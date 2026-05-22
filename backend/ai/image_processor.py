@@ -32,9 +32,9 @@ def preprocess_image(image_path: str) -> dict:
 
     original_shape = img.shape  # (H, W, C)
 
-    # ── Step 1: Resize for OCR sweet spot (max 2000px wide) ──────────────────
+    # ── Step 1: Resize for OCR sweet spot (max 1000px wide to reduce memory usage) ──
     h, w = img.shape[:2]
-    max_w = 2000
+    max_w = 1000
     if w > max_w:
         scale = max_w / w
         img = cv2.resize(img, (max_w, int(h * scale)), interpolation=cv2.INTER_LANCZOS4)
