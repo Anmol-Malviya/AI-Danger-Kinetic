@@ -46,12 +46,14 @@ interface ImageScanResult {
   };
 }
 
+import { API_BASE_URL } from "../config";
+
 interface ImageScannerProps {
   onScanComplete: () => void;
   userId: string | null;
 }
 
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = API_BASE_URL;
 
 export const ImageScanner: React.FC<ImageScannerProps> = ({ onScanComplete, userId }) => {
   const [file, setFile] = useState<File | null>(null);

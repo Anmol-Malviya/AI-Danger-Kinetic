@@ -1,4 +1,5 @@
 import uvicorn
+import os
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,7 +18,7 @@ from backend.routes.image_scan import router as image_scan_router
 # ─────────────────────────────────────────────
 # MongoDB Atlas Setup
 # ─────────────────────────────────────────────
-MONGO_URI = "mongodb+srv://anmol:4328@scoreboard.nwyuwqt.mongodb.net/?retryWrites=true&w=majority"
+MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://anmol:4328@scoreboard.nwyuwqt.mongodb.net/?retryWrites=true&w=majority")
 DB_NAME   = "ai_danger_kinetic"
 
 mongo_client: Optional[MongoClient] = None
@@ -384,4 +385,5 @@ def health():
 
 
 if __name__ == "__main__":
-    uvicorn.run("backend.main:app", host="127.0.0.1", port=8000, reload=False)
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run("backend.main:app", host="0.0.0.0", port=port, reload=False)

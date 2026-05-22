@@ -12,13 +12,15 @@ import {
   FiCheckCircle,
 } from "react-icons/fi";
 
+import { API_BASE_URL } from "../config";
+
 interface LoginProps {
   onLoginSuccess: (username: string) => void;
 }
 
 type AuthMode = "login" | "register";
 
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = API_BASE_URL;
 
 export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   const [mode, setMode] = useState<AuthMode>("login");

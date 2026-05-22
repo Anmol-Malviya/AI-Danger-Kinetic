@@ -8,6 +8,7 @@ import {
   FiGlobe
 } from "react-icons/fi";
 import type { UrlScanResult } from "../types";
+import { API_BASE_URL } from "../config";
 
 interface UrlScannerProps {
   onScanComplete: () => void;
@@ -58,7 +59,7 @@ export const UrlScanner: React.FC<UrlScannerProps> = ({ onScanComplete, userId }
     
     try {
       // Direct backend API fetch
-      const res = await fetch("http://127.0.0.1:8000/scan-url", {
+      const res = await fetch(`${API_BASE_URL}/scan-url`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: formattedUrl, user_id: userId })

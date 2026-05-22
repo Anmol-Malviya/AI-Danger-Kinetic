@@ -7,6 +7,7 @@ import {
   FiFileText
 } from "react-icons/fi";
 import type { TextScanResult } from "../types";
+import { API_BASE_URL } from "../config";
 
 interface TextScannerProps {
   onScanComplete: () => void;
@@ -26,7 +27,7 @@ export const TextScanner: React.FC<TextScannerProps> = ({ onScanComplete, userId
     setScanResult(null);
     
     try {
-      const res = await fetch("http://127.0.0.1:8000/scan-text", {
+      const res = await fetch(`${API_BASE_URL}/scan-text`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: textInput, user_id: userId })

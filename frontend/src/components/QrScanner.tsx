@@ -12,12 +12,14 @@ import {
 } from "react-icons/fi";
 import type { QrScanResult } from "../types";
 
+import { API_BASE_URL } from "../config";
+
 interface QrScannerProps {
   onScanComplete: () => void;
   userId: string | null;
 }
 
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = API_BASE_URL;
 
 export const QrScanner: React.FC<QrScannerProps> = ({ onScanComplete, userId }) => {
   const [file, setFile] = useState<File | null>(null);
