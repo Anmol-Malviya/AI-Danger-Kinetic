@@ -6,7 +6,7 @@ from typing import List, Optional
 from datetime import datetime, timezone
 from pymongo import MongoClient, DESCENDING
 from pymongo.errors import ConnectionFailure
-import re
+import hashlib
 
 from backend.ai_service import ai_service
 
@@ -19,18 +19,31 @@ DB_NAME   = "shieldx_ai"
 mongo_client: Optional[MongoClient] = None
 db = None
 scan_collection = None
+users_collection = None
+
+def _hash(password: str) -> str:
+    """Simple SHA-256 hash for passwords."""
+    return hashlib.sha256(password.encode()).hexdigest()
+
 
 def connect_mongo():
-    global mongo_client, db, scan_collection
+    global mongo_client, db, scan_collection, users_collection
     try:
         mongo_client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
-        # Ping to confirm connection
         mongo_client.admin.command("ping")
         db = mongo_client[DB_NAME]
         scan_collection = db["scan_history"]
-        # Create index on timestamp for fast sorting
         scan_collection.create_index([("timestamp", DESCENDING)])
-        print(f"[OK] MongoDB connected -> database: '{DB_NAME}', collection: 'scan_history'")
+        users_collection = db["users"]
+        users_collection.create_index("username", unique=True)
+        # Seed default admin account if no users exist
+        if users_collection.count_documents({}) == 0:
+            users_collection.insert_many([
+                {"username": "admin", "password_hash": _hash("admin"), "created_at": datetime.now(timezone.utc).isoformat()},
+                {"username": "demo",  "password_hash": _hash("demo123"), "created_at": datetime.now(timezone.utc).isoformat()},
+            ])
+            print("[INFO] Seeded default users: admin/admin, demo/demo123")
+        print(f"[OK] MongoDB connected -> database: '{DB_NAME}', collections: scan_history, users")
         return True
     except ConnectionFailure as e:
         print(f"[WARN] MongoDB connection failed: {e}. Falling back to in-memory storage.")
@@ -140,6 +153,56 @@ def shutdown_event():
     if mongo_client:
         mongo_client.close()
         print("MongoDB connection closed.")
+
+
+# ─────────────────────────────────────────────
+# Auth Schemas
+# ─────────────────────────────────────────────
+class AuthRequest(BaseModel):
+    username: str
+    password: str
+
+# ─────────────────────────────────────────────
+# Auth Routes
+# ─────────────────────────────────────────────
+# Offline fallback user store (if MongoDB unavailable)
+_offline_users: dict = {"admin": _hash("admin"), "demo": _hash("demo123")}
+
+@app.post("/auth/register")
+def register(request: AuthRequest):
+    username = request.username.strip().lower()
+    if not username or not request.password:
+        raise HTTPException(status_code=400, detail="Username and password required.")
+    if len(request.password) < 4:
+        raise HTTPException(status_code=400, detail="Password must be at least 4 characters.")
+    pw_hash = _hash(request.password)
+    if users_collection is not None:
+        if users_collection.find_one({"username": username}):
+            raise HTTPException(status_code=409, detail="Username already exists.")
+        users_collection.insert_one({
+            "username": username,
+            "password_hash": pw_hash,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+    else:
+        if username in _offline_users:
+            raise HTTPException(status_code=409, detail="Username already exists.")
+        _offline_users[username] = pw_hash
+    return {"message": f"Account created for '{username}'. You can now log in."}
+
+
+@app.post("/auth/login")
+def login(request: AuthRequest):
+    username = request.username.strip().lower()
+    pw_hash = _hash(request.password)
+    if users_collection is not None:
+        user = users_collection.find_one({"username": username}, {"_id": 0})
+        if not user or user.get("password_hash") != pw_hash:
+            raise HTTPException(status_code=401, detail="Invalid username or password.")
+    else:
+        if _offline_users.get(username) != pw_hash:
+            raise HTTPException(status_code=401, detail="Invalid username or password.")
+    return {"message": "Login successful.", "username": username}
 
 
 # ─────────────────────────────────────────────
