@@ -23,6 +23,13 @@ DANGEROUS_KEYWORDS: dict[str, float] = {
     "unauthorized transaction": 0.95, "kyc expired": 0.9,
     "update kyc": 0.85, "bank account locked": 0.9,
     "debit card blocked": 0.9, "credit card expired": 0.85,
+    # More Indian banking & suspension keywords
+    "sbi bank": 0.95, "yono sbi": 1.0, "state bank of india": 0.95,
+    "will be suspended": 0.9, "avoid suspension": 0.85,
+    "avoid deactivation": 0.85, "permanently deactivated": 0.95,
+    "verify account": 0.85, "unusual activity": 0.8,
+    "suspicious activity": 0.8, "account deactivation": 0.9,
+    "kyc verification": 0.9, "yono account": 0.95,
     # Password / login
     "reset your password": 0.8, "confirm your password": 0.8,
     "login attempt": 0.75, "unusual sign-in": 0.8,
@@ -51,6 +58,8 @@ WARNING_KEYWORDS: dict[str, float] = {
     "work from home": 0.4, "easy money": 0.5,
     "no investment": 0.45, "100% guaranteed": 0.5,
     "whatsapp": 0.3, "telegram": 0.3,
+    "bank statement": 0.4, "pan card": 0.45, "aadhaar card": 0.45,
+    "customer support": 0.4, "help desk": 0.4,
 }
 
 # URL / domain extraction
@@ -183,7 +192,7 @@ def _identify_categories(text_lower: str, dangerous_hits: list, links: list) -> 
     cats = []
     if any(k in text_lower for k in ("otp", "one time password", "verification code")):
         cats.append("OTP / Credential Theft")
-    if any(k in text_lower for k in ("account blocked", "kyc", "bank", "debit card")):
+    if any(k in text_lower for k in ("account blocked", "kyc", "bank", "debit card", "sbi", "yono", "hdfc", "icici", "suspension", "deactivation")):
         cats.append("Banking Fraud")
     if any(k in text_lower for k in ("won", "prize", "lucky winner", "congratulations")):
         cats.append("Reward / Lottery Scam")

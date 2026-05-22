@@ -15,6 +15,7 @@ from backend.ai.image_processor import preprocess_image, draw_threat_boxes
 from backend.ai.ocr_engine      import extract_text
 from backend.ai.scam_detector   import analyze_text
 from backend.ai.threat_score    import compute_score
+from backend.ai_service         import ai_service
 
 logger = logging.getLogger("shieldx.image_scan")
 
@@ -69,10 +70,11 @@ async def scan_image(file: UploadFile = File(...)):
         logger.info("Step 1: Preprocessing image...")
         preprocess_info = preprocess_image(str(upload_path))
         processed_path  = preprocess_info["processed_path"]
+        ocr_path        = preprocess_info["ocr_path"]
 
         # ── 2. OCR text extraction ────────────────────────────────────────────
         logger.info("Step 2: Running OCR...")
-        ocr_result  = extract_text(processed_path)
+        ocr_result  = extract_text(ocr_path)
         full_text   = ocr_result["full_text"]
         word_blocks = ocr_result["word_blocks"]
 
@@ -87,6 +89,11 @@ async def scan_image(file: UploadFile = File(...)):
         logger.info("Step 3: Running scam detector...")
         detection = analyze_text(full_text, word_blocks)
 
+        # ── 3b. ML text prediction ────────────────────────────────────────────
+        logger.info("Step 3b: Running ML text classifier...")
+        ml_result = ai_service.predict_text(full_text)
+        ml_confidence = ml_result.get("confidence", 0.0) / 100.0  # normalize to 0.0 - 1.0
+
         # ── 4. Threat scoring ─────────────────────────────────────────────────
         logger.info("Step 4: Computing threat score...")
         threat = compute_score(
@@ -95,18 +102,31 @@ async def scan_image(file: UploadFile = File(...)):
             suspicious_link_count = sum(1 for l in detection["suspicious_links"] if l["is_suspicious"]),
             text_length           = ocr_result["char_count"],
             categories            = detection["categories"],
+            ml_confidence         = ml_confidence,
         )
 
-        # ── 5. Annotate original image with bounding boxes ───────────────────
+        # ── 5. Annotate image with bounding boxes ────────────────────────────
         logger.info("Step 5: Drawing annotation boxes...")
         annotated_path = draw_threat_boxes(
-            str(upload_path),
+            ocr_path,
             detection["annotation_boxes"]
         )
 
         # ── Build relative paths for frontend display ─────────────────────────
         annotated_filename  = Path(annotated_path).name
         processed_filename  = preprocess_info["processed_filename"]
+
+        # ── 6. Log Scan to DB / Fallback History ──────────────────────────────
+        try:
+            from backend.main import db_insert_scan
+            db_insert_scan({
+                "type": "Screenshot",
+                "target": file.filename or "uploaded_screenshot.png",
+                "threat_level": "warning" if threat["level"] == "suspicious" else threat["level"],
+                "confidence": float(threat["score"]),
+            })
+        except Exception as db_err:
+            logger.error(f"Failed to log image scan to history: {db_err}")
 
         return JSONResponse({
             "success":    True,
@@ -151,8 +171,14 @@ async def scan_image(file: UploadFile = File(...)):
             detail=f"Scan failed: {str(e)}"
         )
     finally:
-        # Always clean up the raw upload to save disk space (keep processed)
+        # Always clean up the raw upload to save disk space
         try:
             upload_path.unlink(missing_ok=True)
+        except Exception:
+            pass
+        # Clean up temporary OCR image as well
+        try:
+            if "preprocess_info" in locals() and "ocr_path" in preprocess_info:
+                Path(preprocess_info["ocr_path"]).unlink(missing_ok=True)
         except Exception:
             pass

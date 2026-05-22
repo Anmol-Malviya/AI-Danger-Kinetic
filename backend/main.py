@@ -101,7 +101,11 @@ def db_insert_scan(entry: dict):
 def db_get_history(limit: int = 20) -> List[dict]:
     """Fetch latest scan records."""
     if scan_collection is not None:
-        docs = list(scan_collection.find({}, {"_id": 0}).sort("timestamp", DESCENDING).limit(limit))
+        docs = []
+        for doc in scan_collection.find().sort("timestamp", DESCENDING).limit(limit):
+            doc["id"] = str(doc["_id"])
+            del doc["_id"]
+            docs.append(doc)
         return docs
     return fallback_history[:limit]
 

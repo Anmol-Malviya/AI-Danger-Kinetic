@@ -114,23 +114,48 @@ def generate_url_dataset():
 def generate_text_dataset():
     # Scam texts (label = 1)
     scam_texts = [
+        # YONO / SBI / Indian banking scams
+        "Dear Customer, your YONO SBI Bank account will be suspended today. Please avoid suspension by updating your KYC at http://yono-sbi-kyc.com/update",
+        "ALERT: Your SBI NetBanking account has been blocked due to suspicious activity. To reactivate, click here: http://sbi-net-banking.net/login",
+        "Dear customer, your SBI YONO account has expired. Please verify your Aadhaar card and PAN details now: http://yono-sbi-verification.xyz",
+        "SBI Alert: Your YONO account will be permanently deactivated. Tap to avoid suspension: http://sbi-yono-update.online/kyc",
+        "Important: Your SBI credit card has been blocked. Call customer care or update KYC immediately at http://sbi-card-verify.net",
+        "Dear Customer, your Yono SBI account has been locked. Verify now at http://yono-sbi-security.info",
+        "Attention: Your HDFC bank account requires immediate KYC verification. To avoid deactivation, click: http://hdfc-kyc-verify.net",
+        "ICICI Bank Alert: We detected unusual login activity. Confirm your password here: http://icicibank-secure-login.online",
+        "Paytm KYC expired! Your wallet will be suspended within 24 hours. Verify now: http://paytm-kyc-verification.xyz",
+        "Dear customer, your bank account has been blocked. Update your PAN card details to avoid suspension: http://netbanking-update-pan.org",
+        
+        # Courier / Delivery scams
+        "India Post: Your package cannot be delivered due to wrong address info. Update address & pay online fee: http://indiapost-delivery-fees.xyz",
+        "USPS Alert: Your package is on hold at our distribution facility. Update address at http://usps-address-update-fees.net",
+        "DHL Express: Shipment failed due to unpaid customs duties. Pay immediately to clear delivery: http://dhl-package-tracking-hold.info",
+        "FedEx Notification: Your parcel requires address verification. Please visit http://fedex-delivery-redirection.com to reschedule.",
+        
+        # Utility bill scams
+        "ALERT: Your electricity connection will be disconnected tonight at 9:30 PM due to unpaid monthly bill. Call helpline: 89028-19302 immediately.",
+        "Electricity Board: Your electricity bill is past due. To avoid immediate power shutoff, pay now: http://electricity-bill-pay.xyz",
+        "Attention: Electricity connection will be cut today. Pay pending due of Rs 4890 at http://utility-bill-payment.online",
+        
+        # Job / Work from home scams
+        "Earn Rs 2000-5000 daily by liking YouTube videos. Work from home, no experience needed. Join WhatsApp group: http://whatsapp-job-scam.xyz",
+        "Part-time job opportunity: Earn easy money online. Work just 1 hour daily. Guaranteed income. Join Telegram: http://telegram-job-group.link",
+        "Congratulations! You are selected for a part-time job. Daily income up to Rs 8000. Start now: http://work-from-home-rewards.click",
+        "Make money fast with no investment! Daily payout. Click here to sign up: http://easy-money-guaranteed.xyz",
+        
+        # Reward / Lottery scams
+        "You have won a cash prize of Rs 25 Lakhs in Kaun Banega Crorepati (KBC) lottery. Claim your prize on WhatsApp: http://kbc-lottery-winner.online",
+        "Congratulations! Your phone number has won a free iPhone 15 Pro. Claim your reward now: http://win-iphone15-now.xyz",
+        "You are the lucky winner of a $1000 Amazon Gift Card! Click here to redeem: https://win-giftcard-free.xyz/claim",
+        "Congratulations! You won the weekly jackpot! Tap link to claim your reward of $10,000 cash: http://lucky-winner-rewards.top",
+        
+        # OTP / credential theft
         "URGENT: Your Chase account has been locked due to suspicious activity. Please verify your identity immediately: http://chase-banking-alert.net/verify",
-        "Congratulations! You have won a $1000 Amazon Gift Card. Claim your reward now by clicking here: https://win-giftcard-free.xyz/claim",
-        "ALERT: Your FedEx package cannot be delivered due to an incorrect address. Update your address and pay $1.50 fee: http://fedex-delivery-redirection.com",
         "PayPal: We detected a login from an unknown device. If this was not you, please secure your account immediately: http://secure-login-paypal.com/signin",
-        "Dear Customer, your bank card has been suspended. Please call 1-800-BANK or click here to verify details: http://net-banking-login-auth.com",
         "Your Netflix subscription has expired. Update your billing information to continue streaming: http://netflix-verify-account.info",
         "Google: Someone has your password. Protect your account now at http://google-security-update-notice.com/security",
-        "Bank Alert: Did you transfer $500 to John? If NO, cancel this transaction immediately at http://wellsfargo-access-login.com",
-        "Your package from DHL is on hold at our distribution center. Confirm shipment details here: http://dhl-package-tracking-hold.info",
-        "IRS Notice: You have an outstanding tax refund of $820. Claim your tax refund portal link here: http://irs-tax-refund-portal.gov-claims.net",
         "Security Alert: Your Apple ID is locked. Click here to verify your account and restore access: http://verify-appleid-support.com",
-        "Final warning: Your power bill is past due. To avoid shutoff today, pay immediately at http://free-giftcard-giveaway.xyz",
-        "Get $500 free crypto standard reward from Binance. Sign in here to unlock your funds: http://binance-withdrawal-auth.net",
         "Verify your Metamask wallet seed phrase to prevent account suspension: http://metamask-restore-wallet.xyz/restore/wallet",
-        "Congratulations! Your phone number won the lottery! Click to claim $50,000 cash reward: http://win-iphone15-now.xyz",
-        "Your order #4829 has been shipped. Track your shipment details at http://usps-address-update-fees.net",
-        "Important notification from Wells Fargo: please review the security update on your account: http://wellsfargo-access-login.com",
         "Facebook Security: We noticed suspicious logins on your page. Verify ownership now: http://update-facebook-security.org",
         "URGENT Action Required: Confirm your identity within 24 hours to keep your debit card active: http://bankofamerica-card-security.info",
         "Steam Rewards: Claim your free Counter-Strike skins now! Log in to steam: http://steam-community-rewards.xyz"
@@ -157,15 +182,24 @@ def generate_text_dataset():
         "Hi there, your package from USPS has been delivered to your front porch. Thank you.",
         "We are meeting at the park at 4 PM. Bring your running shoes!",
         "Your Google security code is 901238. This is only valid for 10 minutes.",
-        "Hey! Can you send me the address of the restaurant? We are leaving now."
+        "Hey! Can you send me the address of the restaurant? We are leaving now.",
+        "Hi, your SBI account has been credited with INR 5,000.00. Available balance is INR 23,450.00.",
+        "Your transaction at HDFC Bank of Rs. 1,200.00 was successful. Card ending in 4592.",
+        "Dear Customer, welcome to NetBanking. Have a pleasant experience using our online services.",
+        "Please find the attached bank statement for your credit card for the month of April.",
+        "Hello, this is to inform you that your delivery from DHL will arrive today between 2 PM and 5 PM.",
+        "Your package from Amazon is out for delivery. You can track it here: amazon.com/track",
+        "Hi, just reminding you that our weekly status meeting starts in 10 minutes.",
+        "Dear employee, your monthly payslip for May is now available on the HR portal.",
+        "Your appointment is confirmed. If you need to reschedule, please contact our help desk.",
+        "Hi, did you get a chance to review the presentation deck I shared yesterday?"
     ]
     
-    # To expand the dataset, we'll duplicate texts with slight variations
+    # Generate 300 scam and 300 safe texts (600 total)
     all_texts = []
     labels = []
     
-    # Generate 150 scam and 150 safe texts
-    for i in range(150):
+    for i in range(300):
         scam_idx = i % len(scam_texts)
         safe_idx = i % len(safe_texts)
         
@@ -173,14 +207,16 @@ def generate_text_dataset():
         scam_text = scam_texts[scam_idx]
         if i % 3 == 0:
             scam_text = scam_text.replace("URGENT:", "IMMEDIATE:")
+            scam_text = scam_text.replace("Dear Customer,", "Dear User,")
         elif i % 3 == 1:
             scam_text = scam_text.replace("Click here", "Log in now")
+            scam_text = scam_text.replace("alert", "warning")
             
         safe_text = safe_texts[safe_idx]
         if i % 3 == 0:
             safe_text = safe_text.replace("Hey!", "Hello,")
         elif i % 3 == 1:
-            safe_text = safe_text.replace("Buddy", "Friend")
+            safe_text = safe_text.replace("buddy", "friend")
             
         all_texts.append(scam_text)
         labels.append(1)

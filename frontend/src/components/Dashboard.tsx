@@ -32,7 +32,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   setActiveTab
 }) => {
   const [filter, setFilter] = useState<"all" | "safe" | "warning" | "dangerous">("all");
-  const [expandedLogId, setExpandedLogId] = useState<number | null>(null);
+  const [expandedLogId, setExpandedLogId] = useState<string | number | null>(null);
 
   // Auto-refresh simulations
   useEffect(() => {

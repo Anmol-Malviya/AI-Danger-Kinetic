@@ -65,10 +65,17 @@ def preprocess_image(image_path: str) -> dict:
     out_path = PROCESSED_DIR / out_name
     cv2.imwrite(str(out_path), thresh)
 
-    logger.info(f"Preprocessed image saved: {out_path}")
+    # ── Save resized color image for high-accuracy OCR ────────────────────────
+    ocr_name = f"ocr_{uuid.uuid4().hex[:8]}.png"
+    ocr_path = PROCESSED_DIR / ocr_name
+    cv2.imwrite(str(ocr_path), img)
+
+    logger.info(f"Preprocessed image saved: {out_path}, OCR image saved: {ocr_path}")
     return {
         "processed_path": str(out_path),
         "processed_filename": out_name,
+        "ocr_path": str(ocr_path),
+        "ocr_filename": ocr_name,
         "original_size": f"{original_shape[1]}x{original_shape[0]}",
         "processed_size": f"{thresh.shape[1]}x{thresh.shape[0]}",
     }

@@ -43,7 +43,7 @@ export interface ThreatMetrics {
 }
 
 export interface HistoryItem {
-  id: number;
+  id: string | number;
   type: string;
   target: string;
   threat_level: "safe" | "warning" | "dangerous";

@@ -16,10 +16,11 @@ def compute_score(
     suspicious_link_count: int,
     text_length: int,
     categories: list[str],
+    ml_confidence: float = 0.0,
 ) -> dict:
     """
     Compute a normalised threat score.
-    All inputs come from scam_detector.analyze_text().
+    All inputs come from scam_detector.analyze_text() and ML predictions.
     """
 
     # ── Base score from keywords ──────────────────────────────────────────────
@@ -42,8 +43,23 @@ def compute_score(
     else:
         uncertainty_penalty = 0.0
 
-    raw = dangerous_score + warning_score + link_score + cat_boost - uncertainty_penalty
-    score = max(0, min(100, round(raw)))
+    heuristics_raw = dangerous_score + warning_score + link_score + cat_boost - uncertainty_penalty
+    heuristics_score = max(0, min(100, round(heuristics_raw)))
+
+    # ── ML Score Combination ──────────────────────────────────────────────────
+    ml_score = ml_confidence * 100.0
+    if ml_confidence >= 0.75:
+        # High ML confidence ensures dangerous classification, boosting lower heuristics
+        score = max(heuristics_score, round(ml_score * 0.8 + heuristics_score * 0.2))
+    elif ml_confidence >= 0.35:
+        # Moderate ML confidence makes it at least suspicious
+        score = max(heuristics_score, round(ml_score * 0.6 + heuristics_score * 0.4))
+    else:
+        # Low ML confidence: trust heuristics
+        score = heuristics_score
+
+    # Ensure score remains bounded
+    score = max(0, min(100, score))
 
     # ── Classify ──────────────────────────────────────────────────────────────
     if score <= 30:
@@ -62,7 +78,7 @@ def compute_score(
         suspicious_link_count, categories
     )
 
-    logger.info(f"Threat score computed: {score} ({level})")
+    logger.info(f"Threat score computed: {score} ({level}) with ML confidence: {ml_confidence:.2f}")
     return {
         "score": score,
         "level": level,
@@ -73,6 +89,7 @@ def compute_score(
             "warning_keyword_score":   round(warning_score, 1),
             "suspicious_link_score":   round(link_score, 1),
             "category_boost":          round(cat_boost, 1),
+            "ml_classifier_score":     round(ml_score, 1),
         },
     }
 

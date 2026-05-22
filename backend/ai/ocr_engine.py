@@ -5,30 +5,55 @@ Supports English (extendable to Hindi, etc.)
 """
 
 import logging
+import warnings
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Any
+
+# Suppress PyTorch user warning regarding dataloader pin_memory on systems without GPU acceleration
+warnings.filterwarnings("ignore", category=UserWarning, module="torch")
 
 logger = logging.getLogger("shieldx.ocr_engine")
 
-# ── Lazy-load EasyOCR reader (heavy, only instantiate once) ──────────────────
-_reader: Optional[object] = None
+# ── EasyOCR reader instance (instantiated once lazily) ──────────────────────
+_reader: Optional[Any] = None
 
-def _get_reader():
+def _get_reader() -> Any:
     global _reader
     if _reader is None:
         try:
+            import torch
             import easyocr
-            logger.info("Loading EasyOCR model (first run may download weights)...")
+        except ImportError as e:
+            logger.error(f"EasyOCR or PyTorch not installed. Run: pip install easyocr torch. Error: {e}")
+            raise RuntimeError("OCR Engine dependencies (easyocr/torch) are missing.") from e
+
+        gpu_available = torch.cuda.is_available()
+        logger.info(f"Loading EasyOCR model (GPU={gpu_available}, first run may download weights)...")
+        try:
             _reader = easyocr.Reader(
                 ["en"],          # add "hi" for Hindi support
-                gpu=False,       # set True if CUDA available
+                gpu=gpu_available,
                 verbose=False,
             )
             logger.info("EasyOCR model ready.")
-        except ImportError:
-            logger.error("EasyOCR not installed. Run: pip install easyocr")
-            raise
+        except Exception as e:
+            if gpu_available:
+                logger.warning(f"Failed to initialize EasyOCR with GPU: {e}. Retrying on CPU...")
+                try:
+                    _reader = easyocr.Reader(
+                        ["en"],
+                        gpu=False,
+                        verbose=False,
+                    )
+                    logger.info("EasyOCR model ready (CPU fallback).")
+                except Exception as cpu_err:
+                    logger.exception(f"Failed to initialize EasyOCR with CPU: {cpu_err}")
+                    raise cpu_err
+            else:
+                logger.exception(f"Failed to initialize EasyOCR reader: {e}")
+                raise
     return _reader
+
 
 
 def extract_text(image_path: str) -> dict:

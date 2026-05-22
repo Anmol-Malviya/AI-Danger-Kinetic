@@ -2,11 +2,9 @@ import React, { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiUploadCloud,
-  FiAlertTriangle,
   FiCheckCircle,
   FiLink,
   FiTerminal,
-  FiAlertCircle,
   FiXCircle,
   FiRefreshCw,
   FiEye,
