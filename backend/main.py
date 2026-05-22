@@ -1,20 +1,119 @@
 import uvicorn
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import base64
-import re
 from typing import List, Optional
+from datetime import datetime, timezone
+from pymongo import MongoClient, DESCENDING
+from pymongo.errors import ConnectionFailure
+import re
 
 from backend.ai_service import ai_service
 
+# ─────────────────────────────────────────────
+# MongoDB Atlas Setup
+# ─────────────────────────────────────────────
+MONGO_URI = "mongodb+srv://anmol:4328@scoreboard.nwyuwqt.mongodb.net/?retryWrites=true&w=majority"
+DB_NAME   = "shieldx_ai"
+
+mongo_client: Optional[MongoClient] = None
+db = None
+scan_collection = None
+
+def connect_mongo():
+    global mongo_client, db, scan_collection
+    try:
+        mongo_client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
+        # Ping to confirm connection
+        mongo_client.admin.command("ping")
+        db = mongo_client[DB_NAME]
+        scan_collection = db["scan_history"]
+        # Create index on timestamp for fast sorting
+        scan_collection.create_index([("timestamp", DESCENDING)])
+        print(f"[OK] MongoDB connected -> database: '{DB_NAME}', collection: 'scan_history'")
+        return True
+    except ConnectionFailure as e:
+        print(f"[WARN] MongoDB connection failed: {e}. Falling back to in-memory storage.")
+        return False
+
+# ─────────────────────────────────────────────
+# In-memory fallback (used if MongoDB is down)
+# ─────────────────────────────────────────────
+fallback_history = [
+    {
+        "id": 1, "type": "URL",
+        "target": "https://www.paypal.com",
+        "threat_level": "safe", "confidence": 4.2,
+        "timestamp": "2026-05-22T18:30:10Z"
+    },
+    {
+        "id": 2, "type": "SMS",
+        "target": "URGENT: Your Chase account is locked. Verify now at http://chase-banking-alert.net/verify",
+        "threat_level": "dangerous", "confidence": 98.4,
+        "timestamp": "2026-05-22T18:35:15Z"
+    },
+    {
+        "id": 3, "type": "URL",
+        "target": "http://netflix-verify-account.info/login",
+        "threat_level": "dangerous", "confidence": 94.1,
+        "timestamp": "2026-05-22T18:42:02Z"
+    },
+    {
+        "id": 4, "type": "Email",
+        "target": "Hey John, did you receive the PDF slides for our review meeting tomorrow?",
+        "threat_level": "safe", "confidence": 12.5,
+        "timestamp": "2026-05-22T18:50:40Z"
+    }
+]
+fallback_counter = 5
+
+# ─────────────────────────────────────────────
+# Helper: read / write scan history
+# ─────────────────────────────────────────────
+def db_insert_scan(entry: dict):
+    """Insert a scan record. Uses MongoDB if connected, else in-memory list."""
+    global fallback_counter
+    if scan_collection is not None:
+        # MongoDB: strip _id so we don't serialize it later
+        scan_collection.insert_one({**entry, "timestamp": datetime.now(timezone.utc).isoformat()})
+    else:
+        entry["id"] = fallback_counter
+        fallback_counter += 1
+        fallback_history.insert(0, entry)
+
+
+def db_get_history(limit: int = 20) -> List[dict]:
+    """Fetch latest scan records."""
+    if scan_collection is not None:
+        docs = list(scan_collection.find({}, {"_id": 0}).sort("timestamp", DESCENDING).limit(limit))
+        return docs
+    return fallback_history[:limit]
+
+
+def db_get_stats() -> dict:
+    """Aggregate threat stats across all stored scans."""
+    if scan_collection is not None:
+        total = scan_collection.count_documents({})
+        dangerous = scan_collection.count_documents({"threat_level": "dangerous"})
+        warning   = scan_collection.count_documents({"threat_level": "warning"})
+        safe      = scan_collection.count_documents({"threat_level": "safe"})
+    else:
+        total    = len(fallback_history)
+        dangerous = sum(1 for x in fallback_history if x["threat_level"] == "dangerous")
+        warning   = sum(1 for x in fallback_history if x["threat_level"] == "warning")
+        safe      = sum(1 for x in fallback_history if x["threat_level"] == "safe")
+    return {"total": total, "dangerous": dangerous, "warning": warning, "safe": safe}
+
+
+# ─────────────────────────────────────────────
+# FastAPI App
+# ─────────────────────────────────────────────
 app = FastAPI(
     title="ShieldX AI – Scam & Phishing Detection System",
-    description="FastAPI Backend powered by Scikit-learn NLP & Heuristics Engines",
-    version="1.0.0"
+    description="FastAPI Backend powered by Scikit-learn NLP & Heuristics Engines + MongoDB Atlas",
+    version="2.0.0"
 )
 
-# Enable CORS for frontend requests
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -23,128 +122,84 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Startup training handler
+
 @app.on_event("startup")
 def startup_event():
     print("ShieldX AI: Initializing Model Engines...")
     try:
         ai_service.train_models()
-        print("ShieldX AI: Models ready for inference.")
+        print("ShieldX AI: ML Models ready for inference.")
     except Exception as e:
-        print(f"ShieldX AI: Startup training error: {e}. Falling back to rule-based logic.")
+        print(f"ShieldX AI: Model training error: {e}")
 
+    connect_mongo()
+
+
+@app.on_event("shutdown")
+def shutdown_event():
+    if mongo_client:
+        mongo_client.close()
+        print("MongoDB connection closed.")
+
+
+# ─────────────────────────────────────────────
+# Request Schemas
+# ─────────────────────────────────────────────
 class UrlScanRequest(BaseModel):
     url: str
 
 class TextScanRequest(BaseModel):
     text: str
 
-# In-memory history for live logging ticker
-scan_history = [
-    {
-        "id": 1,
-        "type": "URL",
-        "target": "https://www.paypal.com",
-        "threat_level": "safe",
-        "confidence": 4.2,
-        "timestamp": "2026-05-22T18:30:10Z"
-    },
-    {
-        "id": 2,
-        "type": "SMS",
-        "target": "URGENT: Your Chase account is locked. Verify now at http://chase-banking-alert.net/verify",
-        "threat_level": "dangerous",
-        "confidence": 98.4,
-        "timestamp": "2026-05-22T18:35:15Z"
-    },
-    {
-        "id": 3,
-        "type": "URL",
-        "target": "http://netflix-verify-account.info/login",
-        "threat_level": "dangerous",
-        "confidence": 94.1,
-        "timestamp": "2026-05-22T18:42:02Z"
-    },
-    {
-        "id": 4,
-        "type": "Email",
-        "target": "Hey John, did you receive the PDF slides for our review meeting tomorrow?",
-        "threat_level": "safe",
-        "confidence": 12.5,
-        "timestamp": "2026-05-22T18:50:40Z"
-    }
-]
-scan_id_counter = 5
 
+# ─────────────────────────────────────────────
+# Routes
+# ─────────────────────────────────────────────
 @app.post("/scan-url")
 def scan_url(request: UrlScanRequest):
-    global scan_id_counter
     url = request.url.strip()
     if not url:
         raise HTTPException(status_code=400, detail="URL cannot be empty")
-        
+
     try:
         result = ai_service.predict_url(url)
-        
-        # Add to live history log
-        history_entry = {
-            "id": scan_id_counter,
+        db_insert_scan({
             "type": "URL",
             "target": url if len(url) < 60 else url[:57] + "...",
             "threat_level": result["threat_level"],
             "confidence": result["confidence"],
-            "timestamp": "2026-05-22T18:54:00Z" # Will be updated dynamically by frontend
-        }
-        scan_history.insert(0, history_entry)
-        scan_id_counter += 1
-        
+        })
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.post("/scan-text")
 def scan_text(request: TextScanRequest):
-    global scan_id_counter
     text = request.text.strip()
     if not text:
         raise HTTPException(status_code=400, detail="Message text cannot be empty")
-        
+
     try:
         result = ai_service.predict_text(text)
-        
-        # Determine scan type (Email vs SMS based on length)
         scan_type = "Email" if len(text) > 160 else "SMS"
-        
-        # Add to history
-        history_entry = {
-            "id": scan_id_counter,
+        db_insert_scan({
             "type": scan_type,
             "target": text if len(text) < 60 else text[:57] + "...",
             "threat_level": result["threat_level"],
             "confidence": result["confidence"],
-            "timestamp": "2026-05-22T18:54:00Z"
-        }
-        scan_history.insert(0, history_entry)
-        scan_id_counter += 1
-        
+        })
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.post("/scan-qr")
 async def scan_qr(file: UploadFile = File(...)):
-    global scan_id_counter
     try:
-        # Read uploaded image data
-        content = await file.read()
-        
-        # In a real system, we'd use pyzbar or OpenCV to decode the QR code.
-        # To make this fully self-contained and run on any machine without complex native C binary dependencies,
-        # we will parse the filename or simulate extracting a URL from the image metadata or default to a suspicious scan.
-        # This is a highly robust hackathon design choice that guarantees 100% operation out of the box.
-        filename = file.filename.lower()
-        
-        # Default mock extraction URL depending on filename keywords
+        await file.read()   # consume upload
+        filename = (file.filename or "").lower()
+
         extracted_url = "https://shieldx-secure-verification-portal.xyz/login"
         if "safe" in filename or "google" in filename:
             extracted_url = "https://www.google.com/search?q=cybersecurity"
@@ -152,81 +207,67 @@ async def scan_qr(file: UploadFile = File(...)):
             extracted_url = "http://chase-banking-alert.net/verify"
         elif "gift" in filename or "reward" in filename:
             extracted_url = "http://win-iphone15-now.xyz/claim-prize"
-            
+
         result = ai_service.predict_url(extracted_url)
-        
-        # Add to history
-        history_entry = {
-            "id": scan_id_counter,
+        db_insert_scan({
             "type": "QR Code",
-            "target": f"QR Scanned: {extracted_url[:30]}...",
+            "target": f"QR: {extracted_url[:40]}...",
             "threat_level": result["threat_level"],
             "confidence": result["confidence"],
-            "timestamp": "2026-05-22T18:54:00Z"
-        }
-        scan_history.insert(0, history_entry)
-        scan_id_counter += 1
-        
-        return {
-            "filename": file.filename,
-            "decoded_url": extracted_url,
-            "scan_results": result
-        }
+        })
+        return {"filename": file.filename, "decoded_url": extracted_url, "scan_results": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.get("/threat-score")
 def get_threat_score():
-    # Calculate aggregate scores based on history
-    total_scans = len(scan_history)
-    if total_scans == 0:
+    stats = db_get_stats()
+    total    = stats["total"]
+    dangerous = stats["dangerous"]
+    warning   = stats["warning"]
+    safe      = stats["safe"]
+
+    if total == 0:
         return {
-            "threat_score": 0.0,
-            "status": "No active threat profiles found.",
-            "metrics": {"safe": 0, "warning": 0, "dangerous": 0}
+            "threat_score": 0.0, "total_scans": 0,
+            "metrics": {"safe": 0, "warning": 0, "dangerous": 0},
+            "description": "No scans performed yet.",
+            "history": []
         }
-        
-    danger_count = sum(1 for item in scan_history if item["threat_level"] == "dangerous")
-    warning_count = sum(1 for item in scan_history if item["threat_level"] == "warning")
-    safe_count = sum(1 for item in scan_history if item["threat_level"] == "safe")
-    
-    # Calculate weighted threat index
-    total_weights = (danger_count * 1.0) + (warning_count * 0.5) + (safe_count * 0.0)
-    threat_index = round((total_weights / total_scans) * 100, 1)
-    
-    # Dynamic description text generator
+
+    total_weights = (dangerous * 1.0) + (warning * 0.5)
+    threat_index  = round((total_weights / total) * 100, 1)
+
     if threat_index < 35:
         description = (
-            f"ShieldX AI currently reports a low Security Threat Index of {threat_index}%. "
-            f"The environment is safe. The scanned URLs and emails demonstrate standard communication structures, "
-            f"proper SSL/TLS certificate utilization, and lack coercive urgent language. We recommend regular active scanning."
+            f"ShieldX AI reports a LOW Security Threat Index of {threat_index}%. "
+            f"The environment appears safe across {total} total scans. "
+            "Domains inspected show valid SSL/TLS and no suspicious keyword signatures."
         )
     elif threat_index < 70:
         description = (
-            f"ShieldX AI reports a moderate Security Threat Index of {threat_index}%. "
-            f"We have flagged {warning_count} medium-risk threats. These anomalies are primarily related to suspicious domain redirects "
-            f"and warning-level email copy containing financial keywords. Inspect URL domains carefully before submitting credentials."
+            f"ShieldX AI reports a MODERATE Security Threat Index of {threat_index}%. "
+            f"{warning} medium-risk warnings detected across {total} scans. "
+            "Review flagged URLs carefully before submitting credentials."
         )
     else:
         description = (
-            f"ShieldX AI reports an ELEVATED Security Threat Index of {threat_index}%. "
-            f"Critical phishing vectors have been detected in the environment, including {danger_count} dangerous targets. "
-            f"We identified lookalike bank domains (such as 'chase-banking-alert.net') and text messages simulating account suspensions. "
-            f"Avoid clicking any active links, block the senders, and do not input OTPs or credentials on the flagged sites."
+            f"ShieldX AI reports an ELEVATED Threat Index of {threat_index}%. "
+            f"CRITICAL: {dangerous} dangerous targets detected out of {total} total scans. "
+            "Lookalike domains and high-urgency SMS scams identified. Do NOT enter credentials on flagged sites."
         )
-        
+
     return {
         "threat_score": threat_index,
-        "total_scans": total_scans,
-        "metrics": {
-            "safe": safe_count,
-            "warning": warning_count,
-            "dangerous": danger_count
-        },
+        "total_scans": total,
+        "metrics": {"safe": safe, "warning": warning, "dangerous": dangerous},
         "description": description,
-        "history": scan_history[:10]  # Return top 10 historical scans
+        "history": db_get_history(10)
     }
 
+
+# Aliases
 @app.get("/threat-report")
 def get_threat_report():
     return get_threat_score()
@@ -234,6 +275,18 @@ def get_threat_report():
 @app.get("/dashboard-stats")
 def get_dashboard_stats():
     return get_threat_score()
+
+# Health check
+@app.get("/health")
+def health():
+    mongo_ok = scan_collection is not None
+    return {
+        "status": "online",
+        "mongodb": "connected" if mongo_ok else "fallback (in-memory)",
+        "db": DB_NAME if mongo_ok else "N/A",
+        "collection": "scan_history" if mongo_ok else "N/A"
+    }
+
 
 if __name__ == "__main__":
     uvicorn.run("backend.main:app", host="127.0.0.1", port=8000, reload=False)
