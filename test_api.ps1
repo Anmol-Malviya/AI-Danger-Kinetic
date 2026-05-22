@@ -1,5 +1,5 @@
 Write-Host "==========================================" -ForegroundColor Cyan
-Write-Host "  SHIELDX AI - API TEST SUITE" -ForegroundColor Cyan
+Write-Host "  AI DANGER KINETIC - API TEST SUITE" -ForegroundColor Cyan
 Write-Host "==========================================" -ForegroundColor Cyan
 Write-Host ""
 

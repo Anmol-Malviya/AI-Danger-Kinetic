@@ -1,5 +1,5 @@
 """
-ShieldX AI — OCR Engine
+AI Danger Kinetic — OCR Engine
 Wraps EasyOCR to extract text and bounding boxes from preprocessed images.
 Supports English (extendable to Hindi, etc.)
 """
@@ -12,7 +12,7 @@ from typing import Optional, Any
 # Suppress PyTorch user warning regarding dataloader pin_memory on systems without GPU acceleration
 warnings.filterwarnings("ignore", category=UserWarning, module="torch")
 
-logger = logging.getLogger("shieldx.ocr_engine")
+logger = logging.getLogger("ai_danger_kinetic.ocr_engine")
 
 # ── EasyOCR reader instance (instantiated once lazily) ──────────────────────
 _reader: Optional[Any] = None

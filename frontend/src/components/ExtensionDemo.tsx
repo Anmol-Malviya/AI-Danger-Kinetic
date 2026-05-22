@@ -19,7 +19,7 @@ export const ExtensionDemo: React.FC = () => {
           BROWSER EXTENSION INTEGRATION
         </h2>
         <p className="text-xs text-slate-400 font-mono">
-          ShieldX features a lightweight extension API that injects heuristics scanners inline to block domains before page load.
+          AI Danger Kinetic features a lightweight extension API that injects heuristics scanners inline to block domains before page load.
         </p>
       </div>
 
@@ -35,7 +35,7 @@ export const ExtensionDemo: React.FC = () => {
             </div>
             <div className="flex-1 max-w-md mx-auto bg-slate-950 rounded px-3 py-1 text-[11px] font-mono text-slate-400 flex items-center justify-between border border-white/5">
               <span className="truncate">{simulatedUrl}</span>
-              <span className="text-cyber-danger text-[10px] animate-pulse">⚠️ BLOCKED BY SHIELDX</span>
+              <span className="text-cyber-danger text-[10px] animate-pulse">⚠️ BLOCKED BY AI DANGER KINETIC</span>
             </div>
           </div>
 
@@ -47,7 +47,7 @@ export const ExtensionDemo: React.FC = () => {
                   <FiAlertOctagon className="text-4xl" />
                 </div>
                 <h4 className="font-display font-bold text-white text-md tracking-wider">
-                  SHIELDX BLOCKED A PHISHING ATTEMPT
+                  AI DANGER KINETIC BLOCKED A PHISHING ATTEMPT
                 </h4>
                 <p className="text-xs text-slate-400 font-mono leading-relaxed">
                   This website mimics PayPal branding and is hosted on a newly registered suspicious domain.
@@ -84,7 +84,7 @@ export const ExtensionDemo: React.FC = () => {
             <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-4">
               <div className="flex items-center gap-2">
                 <FiShield className="text-cyber-primary text-xl" />
-                <span className="font-display font-extrabold text-sm text-white tracking-widest">SHIELDX POPUP</span>
+                <span className="font-display font-extrabold text-sm text-white tracking-widest">AI DANGER KINETIC</span>
               </div>
               <FiSettings className="text-slate-400 hover:text-white cursor-pointer" />
             </div>

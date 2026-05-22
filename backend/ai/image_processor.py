@@ -1,5 +1,5 @@
 """
-ShieldX AI — Image Preprocessor
+AI Danger Kinetic — Image Preprocessor
 Uses OpenCV to clean, enhance, and prepare screenshots for OCR.
 Pipeline: grayscale → denoise → sharpen → OTSU threshold → CLAHE contrast
 """
@@ -10,7 +10,7 @@ from pathlib import Path
 import uuid
 import logging
 
-logger = logging.getLogger("shieldx.image_processor")
+logger = logging.getLogger("ai_danger_kinetic.image_processor")
 
 # ─── Output directory ────────────────────────────────────────────────────────
 PROCESSED_DIR = Path(__file__).parent.parent / "processed"

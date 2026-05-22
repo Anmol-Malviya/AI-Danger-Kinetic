@@ -139,7 +139,7 @@ export const ImageScanner: React.FC<ImageScannerProps> = ({ onScanComplete }) =>
       {/* Title */}
       <div className="border-b border-cyber-border pb-4">
         <h2 className="text-2xl font-display font-extrabold text-white tracking-wide">
-          SHIELDX IMAGE SHIELD SCANNER
+          AI DANGER KINETIC IMAGE SCANNER
         </h2>
         <p className="text-xs text-slate-400 font-mono mt-1">
           Upload screenshots of WhatsApp chats, SMS, emails, or fake pages. OCR & AI will extract text, highlight suspicious regions, and predict threat scores.
@@ -250,7 +250,7 @@ export const ImageScanner: React.FC<ImageScannerProps> = ({ onScanComplete }) =>
               <div className="flex items-center gap-2">
                 <FiTerminal className="text-cyber-primary" />
                 <h3 className="text-xs font-display font-bold tracking-widest text-slate-300 uppercase">
-                  ShieldX Vision Terminal
+                  AI Danger Kinetic Vision Terminal
                 </h3>
               </div>
               {scanResult && (
@@ -269,7 +269,7 @@ export const ImageScanner: React.FC<ImageScannerProps> = ({ onScanComplete }) =>
                   exit={{ opacity: 0 }}
                   className="space-y-2.5 font-mono text-xs text-slate-500"
                 >
-                  <p className="text-cyber-primary animate-pulse">⚡ LOADING SHIELDX IMAGE AI ENGINES...</p>
+                  <p className="text-cyber-primary animate-pulse">⚡ LOADING AI DANGER KINETIC IMAGE ENGINES...</p>
                   <p>● Preprocessing screenshot: Converting to grayscale...</p>
                   <p>● Applying Non-Local Means denoising filter...</p>
                   <p>● Performing Unsharp mask image sharpening...</p>
@@ -447,7 +447,7 @@ export const ImageScanner: React.FC<ImageScannerProps> = ({ onScanComplete }) =>
                 >
                   <FiFileText className="text-4xl text-slate-600 animate-pulse" />
                   <p className="text-slate-500 font-mono text-xs max-w-sm">
-                    Drag and drop a screenshot or click to browse. ShieldX AI will run an OCR scan to verify its contents.
+                    Drag and drop a screenshot or click to browse. AI Danger Kinetic will run an OCR scan to verify its contents.
                   </p>
                 </motion.div>
               )}

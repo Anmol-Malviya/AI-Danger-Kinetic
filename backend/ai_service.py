@@ -114,7 +114,7 @@ def extract_url_features(url: str) -> dict:
         "domain_entropy": domain_entropy
     }
 
-class ShieldXModel:
+class AIDangerKineticModel:
     def __init__(self):
         self.url_model = None
         self.text_pipeline = None
@@ -309,4 +309,4 @@ class ShieldXModel:
         }
 
 # Instantiate global models service
-ai_service = ShieldXModel()
+ai_service = AIDangerKineticModel()

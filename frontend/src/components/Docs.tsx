@@ -14,7 +14,7 @@ export const Docs: React.FC = () => {
           SYSTEM ARCHITECTURE & API REFERENCE
         </h2>
         <p className="text-xs text-slate-400 font-mono">
-          ShieldX AI operates as a dual-engine classifier combining statistical machine learning and domain heuristics.
+          AI Danger Kinetic operates as a dual-engine classifier combining statistical machine learning and domain heuristics.
         </p>
       </div>
 

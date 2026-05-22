@@ -37,7 +37,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
       <div className="lg:hidden flex items-center justify-between p-4 bg-cyber-bg border-b border-cyber-border text-white sticky top-0 z-50">
         <div className="flex items-center gap-2">
           <FiShield className="text-cyber-primary text-2xl animate-pulse" />
-          <span className="font-display font-bold tracking-wider text-md bg-gradient-to-r from-white to-cyber-primary bg-clip-text text-transparent">SHIELDX AI</span>
+          <span className="font-display font-bold tracking-wider text-md bg-gradient-to-r from-white to-cyber-primary bg-clip-text text-transparent">AI DANGER KINETIC</span>
         </div>
         <button 
           onClick={() => setIsMobileOpen(!isMobileOpen)}
@@ -70,7 +70,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
             </div>
             {!isCollapsed && (
               <span className="font-display font-bold tracking-widest text-lg bg-gradient-to-r from-white to-cyber-primary bg-clip-text text-transparent">
-                SHIELDX AI
+                AI DANGER KINETIC
               </span>
             )}
           </div>

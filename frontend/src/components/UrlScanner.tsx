@@ -25,7 +25,7 @@ export const UrlScanner: React.FC<UrlScannerProps> = ({ onScanComplete }) => {
     setTerminalLogs([]);
     
     const logs = [
-      `[INIT] Launching ShieldX scan socket for destination: ${url}`,
+      `[INIT] Launching AI Danger Kinetic scan socket for destination: ${url}`,
       `[DNS] Querying domain records and server configurations...`,
       `[HEURISTICS] Extracting structural features from URL string...`,
       `[SSL] Inspecting SSL/TLS certificate status...`,
@@ -103,7 +103,7 @@ export const UrlScanner: React.FC<UrlScannerProps> = ({ onScanComplete }) => {
       {/* Title */}
       <div className="border-b border-cyber-border pb-4">
         <h2 className="text-2xl font-display font-extrabold text-white tracking-wide">
-          SHIELDX URL DETECTOR
+          AI DANGER KINETIC URL DETECTOR
         </h2>
         <p className="text-xs text-slate-400 font-mono">
           Enter a web address to verify if the domain matches fraudulent branding or spoofing layouts.
@@ -140,7 +140,7 @@ export const UrlScanner: React.FC<UrlScannerProps> = ({ onScanComplete }) => {
         <div className="glass-card p-4 border border-cyber-primary/20 bg-slate-950/70">
           <div className="flex items-center gap-2 border-b border-white/5 pb-2 mb-3">
             <FiTerminal className="text-cyber-primary text-sm" />
-            <span className="text-xs font-mono font-bold text-slate-300">SHIELDX SCAN TERMINAL</span>
+            <span className="text-xs font-mono font-bold text-slate-300">AI DANGER KINETIC SCAN TERMINAL</span>
             {isScanning && <span className="w-1.5 h-1.5 rounded-full bg-cyber-primary animate-ping" />}
           </div>
           

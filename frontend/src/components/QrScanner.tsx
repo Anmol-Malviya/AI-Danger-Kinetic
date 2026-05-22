@@ -107,7 +107,7 @@ export const QrScanner: React.FC<QrScannerProps> = ({ onScanComplete }) => {
       {/* Header */}
       <div className="border-b border-cyber-border pb-4">
         <h2 className="text-2xl font-display font-extrabold text-white tracking-wide">
-          SHIELDX QR SCAM DETECTOR
+          AI DANGER KINETIC QR SCAM DETECTOR
         </h2>
         <p className="text-xs text-slate-400 font-mono mt-1">
           Upload a QR code image — AI will decode the embedded link and run a real-time phishing analysis.

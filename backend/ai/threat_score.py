@@ -1,5 +1,5 @@
 """
-ShieldX AI — Threat Score Engine
+AI Danger Kinetic — Threat Score Engine
 Computes a 0-100 risk score from scam detection signals.
 0-30 → Safe  |  31-60 → Suspicious  |  61-100 → Dangerous
 """
@@ -7,7 +7,7 @@ Computes a 0-100 risk score from scam detection signals.
 import math
 import logging
 
-logger = logging.getLogger("shieldx.threat_score")
+logger = logging.getLogger("ai_danger_kinetic.threat_score")
 
 
 def compute_score(
@@ -99,7 +99,7 @@ def _build_explanation(
     dw: float, ww: float,
     links: int, categories: list[str]
 ) -> str:
-    parts = [f"ShieldX AI assigned a threat score of {score}/100 ({level.upper()})."]
+    parts = [f"AI Danger Kinetic assigned a threat score of {score}/100 ({level.upper()})."]
 
     if dw > 0:
         parts.append(

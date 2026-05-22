@@ -48,7 +48,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       <div className="flex items-center justify-center min-h-[500px]">
         <div className="flex flex-col items-center gap-3">
           <FiRefreshCw className="text-3xl text-cyber-primary animate-spin" />
-          <p className="font-mono text-slate-400">CONNECTING TO SHIELDX SECURITY CORE...</p>
+          <p className="font-mono text-slate-400">CONNECTING TO AI DANGER KINETIC SECURITY CORE...</p>
         </div>
       </div>
     );
@@ -118,12 +118,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
     doc.setFont("Helvetica", "bold");
     doc.setFontSize(22);
     doc.setTextColor(6, 182, 212); // Cyan
-    doc.text("SHIELDX AI - SECURITY AUDIT REPORT", 20, 25);
+    doc.text("AI DANGER KINETIC - SECURITY AUDIT REPORT", 20, 25);
     
     doc.setFontSize(10);
     doc.setTextColor(255, 255, 255);
     doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 35);
-    doc.text("ShieldX Detection System | Version 1.0.0", 20, 42);
+    doc.text("AI Danger Kinetic Detection System | Version 1.0.0", 20, 42);
 
     // Section 1: Dashboard Metrics
     doc.setFontSize(16);
@@ -195,7 +195,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     });
 
     // Save File
-    doc.save("ShieldX_Security_Report.pdf");
+    doc.save("AI_Danger_Kinetic_Security_Report.pdf");
   };
 
   return (
@@ -429,7 +429,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         <div>
                           <p className="text-slate-500 mb-1 font-bold">ANALYSIS METRIC</p>
                           <div className="space-y-1.5">
-                            <p>● ID: ShieldX-{item.id}</p>
+                            <p>● ID: ADK-{item.id}</p>
                             <p>● Type: {item.type} Vector Classification</p>
                             <p>● Timestamp: {new Date(item.timestamp).toLocaleString()}</p>
                           </div>

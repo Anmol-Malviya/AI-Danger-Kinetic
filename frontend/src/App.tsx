@@ -19,7 +19,7 @@ const fallbackStats: DashboardStats = {
   total_scans: 4,
   metrics: { safe: 2, warning: 1, dangerous: 1 },
   description:
-    "ShieldX AI currently reports a moderate Security Threat Index of 54.2%. Scans have identified lookalike domains (chase-banking-alert.net) and SMS messages containing highly manipulative financial suspension alerts. We recommend cautious validation before entering credit cards or login keys.",
+    "AI Danger Kinetic currently reports a moderate Security Threat Index of 54.2%. Scans have identified lookalike domains (chase-banking-alert.net) and SMS messages containing highly manipulative financial suspension alerts. We recommend cautious validation before entering credit cards or login keys.",
   history: [
     {
       id: 1,
@@ -62,7 +62,7 @@ const App: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loggedInUser, setLoggedInUser] = useState<string | null>(
-    localStorage.getItem("shieldx_user")
+    localStorage.getItem("ai_danger_kinetic_user")
   );
   const [systemAlert] = useState<string | null>(
     "SYSTEM NOTICE: AI Model Engines loaded successfully. Double check HTTPS certs on unknown pages."
@@ -73,7 +73,7 @@ const App: React.FC = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("shieldx_user");
+    localStorage.removeItem("ai_danger_kinetic_user");
     setLoggedInUser(null);
     setStats(null);
     setActiveTab("dashboard");

@@ -17,7 +17,7 @@ from backend.routes.image_scan import router as image_scan_router
 # MongoDB Atlas Setup
 # ─────────────────────────────────────────────
 MONGO_URI = "mongodb+srv://anmol:4328@scoreboard.nwyuwqt.mongodb.net/?retryWrites=true&w=majority"
-DB_NAME   = "shieldx_ai"
+DB_NAME   = "ai_danger_kinetic"
 
 mongo_client: Optional[MongoClient] = None
 db = None
@@ -129,7 +129,7 @@ def db_get_stats() -> dict:
 # FastAPI App
 # ─────────────────────────────────────────────
 app = FastAPI(
-    title="ShieldX AI – Scam & Phishing Detection System",
+    title="AI Danger Kinetic – Scam & Phishing Detection System",
     description="FastAPI Backend powered by Scikit-learn NLP & Heuristics Engines + MongoDB Atlas",
     version="2.0.0"
 )
@@ -157,12 +157,12 @@ app.mount("/processed", StaticFiles(directory=str(_PROCESSED_DIR)), name="proces
 
 @app.on_event("startup")
 def startup_event():
-    print("ShieldX AI: Initializing Model Engines...")
     try:
+        print("AI Danger Kinetic: Initializing Model Engines...")
         ai_service.train_models()
-        print("ShieldX AI: ML Models ready for inference.")
+        print("AI Danger Kinetic: ML Models ready for inference.")
     except Exception as e:
-        print(f"ShieldX AI: Model training error: {e}")
+        print(f"AI Danger Kinetic: Model training error: {e}")
 
     connect_mongo()
 
@@ -349,23 +349,20 @@ def get_threat_score():
     total_weights = (dangerous * 1.0) + (warning * 0.5)
     threat_index  = round((total_weights / total) * 100, 1)
 
-    if threat_index < 35:
+    if threat_index < 30:
         description = (
-            f"ShieldX AI reports a LOW Security Threat Index of {threat_index}%. "
-            f"The environment appears safe across {total} total scans. "
-            "Domains inspected show valid SSL/TLS and no suspicious keyword signatures."
+            f"AI Danger Kinetic reports a LOW Security Threat Index of {threat_index}%. "
+            f"No major anomalies were detected in the text semantics or URL structure."
         )
     elif threat_index < 70:
         description = (
-            f"ShieldX AI reports a MODERATE Security Threat Index of {threat_index}%. "
-            f"{warning} medium-risk warnings detected across {total} scans. "
-            "Review flagged URLs carefully before submitting credentials."
+            f"AI Danger Kinetic reports a MODERATE Security Threat Index of {threat_index}%. "
+            f"Some warnings were triggered. Please exercise caution and verify the source."
         )
     else:
         description = (
-            f"ShieldX AI reports an ELEVATED Threat Index of {threat_index}%. "
-            f"CRITICAL: {dangerous} dangerous targets detected out of {total} total scans. "
-            "Lookalike domains and high-urgency SMS scams identified. Do NOT enter credentials on flagged sites."
+            f"AI Danger Kinetic reports an ELEVATED Threat Index of {threat_index}%. "
+            f"Multiple dangerous heuristics matched. Do not click links or provide sensitive information."
         )
 
     return {

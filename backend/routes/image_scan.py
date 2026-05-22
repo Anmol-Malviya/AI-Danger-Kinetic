@@ -1,5 +1,5 @@
 """
-ShieldX AI — Image Scan Route  (/scan-image)
+# AI Danger Kinetic — Image Scan Route  (/scan-image)
 Orchestrates: upload → preprocess → OCR → scam detect → threat score → annotate
 """
 
@@ -17,7 +17,7 @@ from backend.ai.scam_detector   import analyze_text
 from backend.ai.threat_score    import compute_score
 from backend.ai_service         import ai_service
 
-logger = logging.getLogger("shieldx.image_scan")
+logger = logging.getLogger("ai_danger_kinetic.image_scan")
 
 router = APIRouter(prefix="/scan-image", tags=["Image Scan"])
 

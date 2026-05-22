@@ -1,6 +1,6 @@
-# SHIELDX AI - AI Cyber Security Suite (Real-Time Threat Intelligence)
+# AI DANGER KINETIC - AI Cyber Security Suite (Real-Time Threat Intelligence)
 
-**SHIELDX AI** is an advanced AI-powered cyber security platform that simulates real-time protection against phishing, malware, and hacking attempts. It features a sophisticated threat detection engine, predictive analytics, and a browser extension that blocks threats before they execute.
+**AI Danger Kinetic** is an advanced AI-powered cyber security platform that simulates real-time protection against phishing, malware, and hacking attempts. It features a sophisticated threat detection engine, predictive analytics, and a browser extension that blocks threats before they execute.
 
 ---
 
@@ -8,7 +8,7 @@
 
 Experience the live threat detection in action:
 
-**👉 [Launch SHIELDX AI](http://localhost:8000) 👈**
+**👉 [Launch AI Danger Kinetic](http://localhost:8000) 👈**
 
 > The system runs locally. If the link doesn't open automatically, open your browser and go to `http://localhost:8000`.
 

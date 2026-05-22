@@ -1,1 +1,1 @@
-# ShieldX AI module
+# AI Danger Kinetic module

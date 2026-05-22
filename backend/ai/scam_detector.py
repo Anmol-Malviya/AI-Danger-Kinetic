@@ -1,5 +1,5 @@
 """
-ShieldX AI — Scam Detector (NLP + Regex)
+AI Danger Kinetic — Scam Detector (NLP + Regex)
 Analyses OCR-extracted text for phishing/scam indicators.
 Returns matched keywords, suspicious links, category labels, and annotated boxes.
 """
@@ -8,7 +8,7 @@ import re
 import logging
 from typing import Any
 
-logger = logging.getLogger("shieldx.scam_detector")
+logger = logging.getLogger("ai_danger_kinetic.scam_detector")
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  Keyword dictionaries (weighted by severity)

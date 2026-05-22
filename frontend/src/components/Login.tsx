@@ -76,7 +76,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           }, 1500);
         } else {
           // Save session to localStorage
-          localStorage.setItem("shieldx_user", username.trim());
+          localStorage.setItem("ai_danger_kinetic_user", username.trim());
           onLoginSuccess(username.trim());
         }
       }
@@ -88,7 +88,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
         anmol: "4328",
       };
       if (mode === "login" && demoUsers[username.toLowerCase()] === password) {
-        localStorage.setItem("shieldx_user", username.trim());
+        localStorage.setItem("ai_danger_kinetic_user", username.trim());
         onLoginSuccess(username.trim());
       } else if (mode === "register") {
         setSuccess("Account created (offline mode)! Switching to login...");
@@ -149,7 +149,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
             </div>
 
             <h1 className="text-2xl font-display font-extrabold tracking-widest text-white bg-gradient-to-r from-white to-cyber-primary bg-clip-text text-transparent">
-              SHIELDX AI
+              AI DANGER KINETIC
             </h1>
             <p className="text-[11px] font-mono text-slate-500 tracking-widest mt-1 uppercase">
               Cyber Threat Intelligence Platform
@@ -325,7 +325,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
 
           {/* Footer */}
           <p className="text-center text-[10px] font-mono text-slate-600 mt-6">
-            SHIELDX AI v2.0 · ENCRYPTED CHANNEL · NODE-X01
+            AI DANGER KINETIC v2.0 · ENCRYPTED CHANNEL · NODE-X01
           </p>
         </div>
       </motion.div>
