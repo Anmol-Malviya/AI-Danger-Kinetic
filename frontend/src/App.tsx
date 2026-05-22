@@ -4,6 +4,7 @@ import { Dashboard } from "./components/Dashboard";
 import { UrlScanner } from "./components/UrlScanner";
 import { TextScanner } from "./components/TextScanner";
 import { QrScanner } from "./components/QrScanner";
+import { ImageScanner } from "./components/ImageScanner";
 import { ExtensionDemo } from "./components/ExtensionDemo";
 import { Docs } from "./components/Docs";
 import { Login } from "./components/Login";
@@ -171,6 +172,7 @@ const App: React.FC = () => {
           )}
           {activeTab === "url" && <UrlScanner onScanComplete={handleScanCompleted} />}
           {activeTab === "text" && <TextScanner onScanComplete={handleScanCompleted} />}
+          {activeTab === "image" && <ImageScanner onScanComplete={handleScanCompleted} />}
           {activeTab === "qr" && <QrScanner onScanComplete={handleScanCompleted} />}
           {activeTab === "extension" && <ExtensionDemo />}
           {activeTab === "docs" && <Docs />}

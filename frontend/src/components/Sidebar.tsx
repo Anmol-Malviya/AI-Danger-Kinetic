@@ -8,7 +8,8 @@ import {
   FiBookOpen, 
   FiChevronLeft, 
   FiChevronRight,
-  FiMenu
+  FiMenu,
+  FiImage
 } from "react-icons/fi";
 
 interface SidebarProps {
@@ -24,6 +25,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
     { id: "dashboard", label: "Dashboard", icon: <FiGrid className="text-xl" /> },
     { id: "url", label: "URL Scanner", icon: <FiSearch className="text-xl" /> },
     { id: "text", label: "SMS & Email", icon: <FiMail className="text-xl" /> },
+    { id: "image", label: "Image Shield", icon: <FiImage className="text-xl" /> },
     { id: "qr", label: "QR Scanner", icon: <FiCpu className="text-xl" /> },
     { id: "extension", label: "Extension Demo", icon: <FiShield className="text-xl" /> },
     { id: "docs", label: "API & Models", icon: <FiBookOpen className="text-xl" /> },

@@ -1,6 +1,8 @@
 import uvicorn
+from pathlib import Path
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime, timezone
@@ -9,6 +11,7 @@ from pymongo.errors import ConnectionFailure
 import hashlib
 
 from backend.ai_service import ai_service
+from backend.routes.image_scan import router as image_scan_router
 
 # ─────────────────────────────────────────────
 # MongoDB Atlas Setup
@@ -134,6 +137,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ── Image scan route ──────────────────────────────────────────────────────────
+app.include_router(image_scan_router)
+
+# ── Serve processed & uploaded images as static files ────────────────────────
+_BASE = Path(__file__).parent
+_UPLOADS_DIR   = _BASE / "uploads"
+_PROCESSED_DIR = _BASE / "processed"
+_UPLOADS_DIR.mkdir(exist_ok=True)
+_PROCESSED_DIR.mkdir(exist_ok=True)
+app.mount("/uploads",   StaticFiles(directory=str(_UPLOADS_DIR)),   name="uploads")
+app.mount("/processed", StaticFiles(directory=str(_PROCESSED_DIR)), name="processed")
 
 
 @app.on_event("startup")
