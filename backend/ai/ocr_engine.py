@@ -5,6 +5,7 @@ Optimized for ultra-low memory usage on constrained containers (e.g. Render Free
 """
 
 import logging
+import os
 import shutil
 from pathlib import Path
 from typing import Optional
@@ -22,6 +23,7 @@ def is_tesseract_available() -> bool:
     if _tesseract_available is None:
         cmd = shutil.which("tesseract")
         if cmd is not None:
+            pytesseract.pytesseract.tesseract_cmd = cmd
             _tesseract_available = True
         else:
             # Check common Windows installation paths as fallback
@@ -29,6 +31,9 @@ def is_tesseract_available() -> bool:
                 r"C:\Program Files\Tesseract-OCR\tesseract.exe",
                 r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
             ]
+            local_appdata = os.getenv("LOCALAPPDATA")
+            if local_appdata:
+                common_paths.append(str(Path(local_appdata) / "Tesseract-OCR" / "tesseract.exe"))
             for path in common_paths:
                 if Path(path).exists():
                     pytesseract.pytesseract.tesseract_cmd = path
@@ -71,26 +76,59 @@ def extract_text(image_path: str) -> dict:
         # Get OCR data including bounding boxes, confidence, and line/word structure
         data = pytesseract.image_to_data(img, output_type=Output.DICT)
         
+        # Ensure we have all required keys to prevent KeyError
+        required_keys = ['text', 'conf', 'block_num', 'par_num', 'line_num', 'left', 'top', 'width', 'height']
+        if not data or not all(k in data for k in required_keys):
+            logger.warning("Pytesseract output dict is missing keys or empty.")
+            return {
+                "full_text": "",
+                "word_blocks": [],
+                "word_count": 0,
+                "char_count": 0,
+            }
+
         # Group words by line (block_num, par_num, line_num) to reconstruct lines and phrase-level bounding boxes
         n_boxes = len(data['text'])
         line_groups = {}
         for i in range(n_boxes):
-            text = data['text'][i].strip()
+            # Safe boundary check
+            if any(len(data[k]) <= i for k in required_keys):
+                continue
+
+            text = str(data['text'][i]).strip()
+            
+            # Safe confidence conversion
+            try:
+                conf = float(data['conf'][i])
+            except (ValueError, TypeError):
+                conf = -1.0
+
             # Skip empty text or low-confidence boxes (Tesseract returns -1 for structural blocks)
-            if not text or data['conf'][i] < 0:
+            if not text or conf < 0:
                 continue
                 
-            conf = float(data['conf'][i])
-            key = (data['block_num'][i], data['par_num'][i], data['line_num'][i])
+            # Safe numeric conversion for coordinates
+            try:
+                block_num = int(data['block_num'][i])
+                par_num = int(data['par_num'][i])
+                line_num = int(data['line_num'][i])
+                left = int(data['left'][i])
+                top = int(data['top'][i])
+                width = int(data['width'][i])
+                height = int(data['height'][i])
+            except (ValueError, TypeError):
+                continue
+
+            key = (block_num, par_num, line_num)
             if key not in line_groups:
                 line_groups[key] = []
             line_groups[key].append({
                 "text": text,
                 "confidence": conf,
-                "left": data['left'][i],
-                "top": data['top'][i],
-                "width": data['width'][i],
-                "height": data['height'][i],
+                "left": left,
+                "top": top,
+                "width": width,
+                "height": height,
             })
             
         word_blocks = []

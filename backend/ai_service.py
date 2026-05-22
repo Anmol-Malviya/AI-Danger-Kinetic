@@ -133,8 +133,8 @@ class AIDangerKineticModel:
                 print("Loading pre-trained URL classifier...")
                 with open(url_model_path, "rb") as f:
                     self.url_model = pickle.load(f)
-                # Quick verification check
-                _ = self.url_model.predict([[0]*11])
+                # Quick verification check using predict_proba to catch version mismatches
+                _ = self.url_model.predict_proba([[0]*11])
                 loaded_url = True
                 print("[OK] URL classifier loaded successfully.")
             except Exception as e:
@@ -177,8 +177,8 @@ class AIDangerKineticModel:
                 print("Loading pre-trained text classifier...")
                 with open(text_model_path, "rb") as f:
                     self.text_pipeline = pickle.load(f)
-                # Quick verification check
-                _ = self.text_pipeline.predict(["test text"])
+                # Quick verification check using predict_proba to catch version mismatches
+                _ = self.text_pipeline.predict_proba(["test text"])
                 loaded_text = True
                 print("[OK] Text classifier loaded successfully.")
             except Exception as e:
