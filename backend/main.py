@@ -259,28 +259,56 @@ def scan_text(request: TextScanRequest):
 
 @app.post("/scan-qr")
 async def scan_qr(file: UploadFile = File(...)):
-    try:
-        await file.read()   # consume upload
-        filename = (file.filename or "").lower()
+    import cv2
+    import numpy as np
 
-        extracted_url = "https://shieldx-secure-verification-portal.xyz/login"
-        if "safe" in filename or "google" in filename:
-            extracted_url = "https://www.google.com/search?q=cybersecurity"
-        elif "bank" in filename or "chase" in filename:
-            extracted_url = "http://chase-banking-alert.net/verify"
-        elif "gift" in filename or "reward" in filename:
-            extracted_url = "http://win-iphone15-now.xyz/claim-prize"
+    try:
+        image_bytes = await file.read()
+        if not image_bytes:
+            raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+
+        nparr = np.frombuffer(image_bytes, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+        if img is None:
+            raise HTTPException(status_code=400, detail="Could not read image. Upload a valid PNG/JPG/WEBP file.")
+
+        extracted_url = None
+        detector = cv2.QRCodeDetector()
+
+        # Pass 1: decode the original image
+        data, _, _ = detector.detectAndDecode(img)
+        if data:
+            extracted_url = data.strip()
+
+        # Pass 2: grayscale + upscale + OTSU threshold (helps low-res QR codes)
+        if not extracted_url:
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            enlarged = cv2.resize(gray, (gray.shape[1] * 2, gray.shape[0] * 2), interpolation=cv2.INTER_CUBIC)
+            _, thresh = cv2.threshold(enlarged, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+            data2, _, _ = detector.detectAndDecode(thresh)
+            if data2:
+                extracted_url = data2.strip()
+
+        if not extracted_url:
+            raise HTTPException(
+                status_code=422,
+                detail="No QR code detected in the image. Upload a clear, well-lit QR code (PNG/JPG works best)."
+            )
 
         result = ai_service.predict_url(extracted_url)
         db_insert_scan({
             "type": "QR Code",
-            "target": f"QR: {extracted_url[:40]}...",
+            "target": f"QR: {extracted_url[:50]}..." if len(extracted_url) > 50 else f"QR: {extracted_url}",
             "threat_level": result["threat_level"],
             "confidence": result["confidence"],
         })
         return {"filename": file.filename, "decoded_url": extracted_url, "scan_results": result}
+
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"QR scan failed: {str(e)}")
 
 
 @app.get("/threat-score")

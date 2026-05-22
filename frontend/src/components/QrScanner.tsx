@@ -1,10 +1,14 @@
-import React, { useState } from "react";
-import { 
-  FiUploadCloud, 
-  FiAlertTriangle, 
-  FiCheckCircle, 
+import React, { useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  FiUploadCloud,
+  FiAlertTriangle,
+  FiCheckCircle,
   FiLink,
-  FiTerminal
+  FiTerminal,
+  FiAlertCircle,
+  FiXCircle,
+  FiRefreshCw,
 } from "react-icons/fi";
 import type { QrScanResult } from "../types";
 
@@ -12,90 +16,76 @@ interface QrScannerProps {
   onScanComplete: () => void;
 }
 
+const API_BASE = "http://127.0.0.1:8000";
+
 export const QrScanner: React.FC<QrScannerProps> = ({ onScanComplete }) => {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<QrScanResult | null>(null);
+  const [scanError, setScanError] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const loadFile = (selected: File) => {
+    if (!selected.type.startsWith("image/")) {
+      setScanError("Please upload a valid image file (PNG, JPG, WEBP).");
+      return;
+    }
+    setFile(selected);
+    setPreviewUrl(URL.createObjectURL(selected));
+    setScanResult(null);
+    setScanError(null);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const selectedFile = e.target.files[0];
-      setFile(selectedFile);
-      setPreviewUrl(URL.createObjectURL(selectedFile));
-      setScanResult(null);
-    }
+    if (e.target.files?.[0]) loadFile(e.target.files[0]);
   };
+
+  // Drag-and-drop handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+  const handleDragLeave = useCallback(() => setIsDragging(false), []);
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const dropped = e.dataTransfer.files[0];
+    if (dropped) loadFile(dropped);
+  }, []);
 
   const handleScan = async () => {
     if (!file) return;
     setIsScanning(true);
+    setScanError(null);
 
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/scan-qr", {
+      const res = await fetch(`${API_BASE}/scan-qr`, {
         method: "POST",
-        body: formData
+        body: formData,
       });
 
-      if (res.ok) {
-        const data: QrScanResult = await res.json();
-        // Delay for aesthetic laser scanning animation
-        setTimeout(() => {
-          setScanResult(data);
-          setIsScanning(false);
-          onScanComplete();
-        }, 2000);
-      } else {
-        throw new Error("Backend query failed");
-      }
-    } catch (err) {
-      console.warn("Backend error, running offline fallback mock simulation...");
-      // High-fidelity fallback logic
-      const filename = file.name.toLowerCase();
-      let decodedUrl = "https://shieldx-secure-verification-portal.xyz/login";
-      if (filename.includes("safe") || filename.includes("google")) {
-        decodedUrl = "https://www.google.com/search?q=cybersecurity";
-      } else if (filename.includes("bank") || filename.includes("chase")) {
-        decodedUrl = "http://chase-banking-alert.net/verify";
-      } else if (filename.includes("gift") || filename.includes("reward")) {
-        decodedUrl = "http://win-iphone15-now.xyz/claim-prize";
+      const data = await res.json();
+
+      if (!res.ok) {
+        // Backend returned a clear error (e.g., 422 = no QR found)
+        setScanError(data.detail || "QR scan failed. Try a clearer image.");
+        setIsScanning(false);
+        return;
       }
 
-      const isPhish = /login|bank|paypal|verify|secure|chase|free|claim/i.test(decodedUrl) || decodedUrl.includes("http://");
-      const mockResult: QrScanResult = {
-        filename: file.name,
-        decoded_url: decodedUrl,
-        scan_results: {
-          url: decodedUrl,
-          threat_level: isPhish ? (decodedUrl.includes("http://") ? "dangerous" : "warning") : "safe",
-          confidence: isPhish ? parseFloat((78 + Math.random() * 20).toFixed(1)) : parseFloat((3 + Math.random() * 8).toFixed(1)),
-          features: {
-            url_length: decodedUrl.length,
-            dot_count: decodedUrl.split(".").length - 1,
-            hyphen_count: (decodedUrl.split("-").length - 1) || 0,
-            has_ip: 0,
-            has_at: 0,
-            is_https: decodedUrl.startsWith("http://") ? 0 : 1,
-            has_redirect: 0,
-            is_shortened: 0,
-            subdomain_count: Math.max(0, decodedUrl.split(".").length - 3),
-            keyword_count: isPhish ? 2 : 0,
-            domain_entropy: 3.8
-          },
-          details: isPhish 
-            ? ["Suspicious keyword presence detected in domain/path", "Embedded url lacks HTTPS secure certificate protocol"]
-            : ["Secure HTTPS verification active", "Standard domain registry alignment confirmed"]
-        }
-      };
-
+      // Success — small delay for laser animation to play out
       setTimeout(() => {
-        setScanResult(mockResult);
+        setScanResult(data as QrScanResult);
         setIsScanning(false);
         onScanComplete();
-      }, 2000);
+      }, 1800);
+    } catch {
+      setScanError("Backend unavailable. Please make sure the server is running on port 8000.");
+      setIsScanning(false);
     }
   };
 
@@ -103,33 +93,54 @@ export const QrScanner: React.FC<QrScannerProps> = ({ onScanComplete }) => {
     setFile(null);
     setPreviewUrl(null);
     setScanResult(null);
+    setScanError(null);
+  };
+
+  const tlColor = (tl: string) => {
+    if (tl === "safe") return "text-cyber-success border-cyber-success/30 bg-cyber-success/5";
+    if (tl === "warning") return "text-cyber-warning border-cyber-warning/30 bg-cyber-warning/5";
+    return "text-cyber-danger border-cyber-danger/30 bg-cyber-danger/5";
   };
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
-      {/* Title */}
+      {/* Header */}
       <div className="border-b border-cyber-border pb-4">
         <h2 className="text-2xl font-display font-extrabold text-white tracking-wide">
           SHIELDX QR SCAM DETECTOR
         </h2>
-        <p className="text-xs text-slate-400 font-mono">
-          Upload an image of a QR code to extract the embedded link and perform real-time security scans.
+        <p className="text-xs text-slate-400 font-mono mt-1">
+          Upload a QR code image — AI will decode the embedded link and run a real-time phishing analysis.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Upload Container */}
-        <div className="glass-card p-6 flex flex-col items-center justify-center min-h-[300px]">
+        {/* ── Upload Panel ── */}
+        <div className="glass-card p-6 flex flex-col items-center justify-center min-h-[320px]">
           {!previewUrl ? (
-            <label className="w-full flex flex-col items-center justify-center h-56 border-2 border-dashed border-cyber-border hover:border-cyber-primary rounded-xl cursor-pointer bg-slate-900/20 hover:bg-slate-900/40 transition-all group">
-              <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4">
-                <FiUploadCloud className="text-4xl text-slate-500 group-hover:text-cyber-primary transition-colors mb-3" />
+            <label
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`w-full flex flex-col items-center justify-center h-64 border-2 border-dashed rounded-xl cursor-pointer transition-all
+                ${isDragging
+                  ? "border-cyber-primary bg-cyber-primary/10 scale-[1.01]"
+                  : "border-cyber-border bg-slate-900/20 hover:border-cyber-primary hover:bg-slate-900/40"
+                }`}
+            >
+              <div className="flex flex-col items-center justify-center text-center px-4">
+                <FiUploadCloud
+                  className={`text-4xl mb-3 transition-colors ${isDragging ? "text-cyber-primary" : "text-slate-500"}`}
+                />
                 <p className="text-sm text-slate-300 font-bold font-display tracking-wide mb-1">
-                  DRAG & DROP QR IMAGE
+                  {isDragging ? "DROP IT!" : "DRAG & DROP QR IMAGE"}
                 </p>
                 <p className="text-xs text-slate-500 font-mono">
-                  PNG, JPG, or WEBP up to 5MB
+                  or click to browse — PNG, JPG, WEBP up to 10MB
                 </p>
+                <div className="mt-4 px-4 py-1.5 border border-cyber-primary/40 rounded text-[10px] font-mono text-cyber-primary tracking-widest">
+                  SELECT FILE
+                </div>
               </div>
               <input
                 type="file"
@@ -139,111 +150,192 @@ export const QrScanner: React.FC<QrScannerProps> = ({ onScanComplete }) => {
               />
             </label>
           ) : (
-            <div className="relative w-full flex flex-col items-center">
-              {/* QR Image Framing with laser line */}
-              <div className="relative w-48 h-48 border border-cyber-border bg-slate-950 p-2 rounded-lg flex items-center justify-center overflow-hidden mb-4 shadow-[0_0_15px_rgba(0,0,0,0.6)]">
-                <img 
-                  src={previewUrl} 
-                  alt="QR Preview" 
-                  className={`max-w-full max-h-full object-contain rounded transition-all duration-300 ${isScanning ? "opacity-60 blur-[1px]" : ""}`} 
+            <div className="flex flex-col items-center w-full gap-4">
+              {/* QR preview with laser animation */}
+              <div className="relative w-52 h-52 border border-cyber-border bg-slate-950 rounded-lg flex items-center justify-center overflow-hidden shadow-[0_0_20px_rgba(0,0,0,0.5)]">
+                <img
+                  src={previewUrl}
+                  alt="QR Preview"
+                  className={`max-w-full max-h-full object-contain rounded transition-all duration-300 ${isScanning ? "opacity-50 blur-[0.5px]" : ""}`}
                 />
-                
-                {/* Laser animation */}
                 {isScanning && (
                   <>
                     <div className="scanner-line" />
                     <div className="absolute inset-0 bg-cyber-primary/5 animate-pulse" />
                   </>
                 )}
+                {/* Corner brackets */}
+                <div className="absolute top-1 left-1 w-4 h-4 border-t-2 border-l-2 border-cyber-primary/60 rounded-tl" />
+                <div className="absolute top-1 right-1 w-4 h-4 border-t-2 border-r-2 border-cyber-primary/60 rounded-tr" />
+                <div className="absolute bottom-1 left-1 w-4 h-4 border-b-2 border-l-2 border-cyber-primary/60 rounded-bl" />
+                <div className="absolute bottom-1 right-1 w-4 h-4 border-b-2 border-r-2 border-cyber-primary/60 rounded-br" />
               </div>
 
-              {/* Controls */}
+              <p className="text-[11px] font-mono text-slate-500 max-w-[200px] text-center truncate">
+                {file?.name}
+              </p>
+
               <div className="flex gap-3">
                 <button
                   onClick={handleReset}
                   disabled={isScanning}
-                  className="px-4 py-2 border border-cyber-border bg-slate-900/50 hover:bg-slate-800 text-slate-300 hover:text-white rounded-lg text-xs font-mono font-bold transition-all disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-4 py-2 border border-cyber-border bg-slate-900/50 hover:bg-slate-800 text-slate-300 hover:text-white rounded-lg text-xs font-mono font-bold transition-all disabled:opacity-50"
                 >
-                  REMOVE
+                  <FiRefreshCw className="text-xs" /> RESET
                 </button>
                 <button
                   onClick={handleScan}
                   disabled={isScanning || scanResult !== null}
-                  className="px-5 py-2 bg-cyber-primary hover:bg-cyber-primary-hover text-slate-950 rounded-lg text-xs font-display font-extrabold tracking-widest shadow-[0_0_10px_rgba(6,182,212,0.3)] transition-all disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-5 py-2 bg-cyber-primary hover:bg-cyan-400 text-slate-950 rounded-lg text-xs font-display font-extrabold tracking-widest shadow-[0_0_12px_rgba(6,182,212,0.3)] transition-all disabled:opacity-50"
                 >
-                  {isScanning ? "EXTRACTING..." : "EXTRACT & SCAN"}
+                  {isScanning ? (
+                    <>
+                      <span className="w-3 h-3 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                      DECODING...
+                    </>
+                  ) : scanResult ? (
+                    <><FiCheckCircle /> DONE</>
+                  ) : (
+                    "EXTRACT & SCAN"
+                  )}
                 </button>
               </div>
             </div>
           )}
         </div>
 
-        {/* Dynamic Scan terminal during scanning */}
-        <div className="glass-card p-6 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center gap-2 border-b border-white/5 pb-2 mb-4">
-              <FiTerminal className="text-cyber-primary text-md" />
-              <h3 className="text-xs font-display font-bold tracking-widest text-slate-300 uppercase">
-                QR READ LOG
-              </h3>
-            </div>
-            
-            {isScanning ? (
-              <div className="space-y-2 font-mono text-xs text-slate-500">
+        {/* ── Results Panel ── */}
+        <div className="glass-card p-6 flex flex-col min-h-[320px]">
+          <div className="flex items-center gap-2 border-b border-white/5 pb-2 mb-4">
+            <FiTerminal className="text-cyber-primary" />
+            <h3 className="text-xs font-display font-bold tracking-widest text-slate-300 uppercase">
+              QR READ LOG
+            </h3>
+          </div>
+
+          <AnimatePresence mode="wait">
+            {/* Scanning animation */}
+            {isScanning && (
+              <motion.div
+                key="scanning"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="space-y-2 font-mono text-xs text-slate-500"
+              >
                 <p className="text-cyber-primary animate-pulse">⚡ INITIALIZING VISUAL SCANNER MODULE...</p>
-                <p>● Scanning raw byte quadrants...</p>
-                <p>● Locating alignment pattern benchmarks...</p>
-                <p>● De-masking pixel matrix mapping...</p>
-                <p>● Extracting payload content bytes...</p>
-              </div>
-            ) : scanResult ? (
-              <div className="space-y-4">
+                <p>● Isolating QR finder patterns...</p>
+                <p>● Reading bit matrix orientation...</p>
+                <p>● Applying Reed-Solomon error correction...</p>
+                <p>● Extracting embedded URL payload...</p>
+                <p>● Running AI threat classification...</p>
+              </motion.div>
+            )}
+
+            {/* Error state */}
+            {!isScanning && scanError && (
+              <motion.div
+                key="error"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="flex flex-col items-center justify-center h-full text-center gap-4 py-6"
+              >
+                <FiXCircle className="text-4xl text-cyber-danger" />
+                <div>
+                  <p className="text-xs font-display font-bold text-cyber-danger tracking-wide mb-2">
+                    SCAN FAILED
+                  </p>
+                  <p className="text-xs font-mono text-slate-400 max-w-xs">{scanError}</p>
+                </div>
+                <div className="p-3 bg-slate-950/60 rounded-lg border border-cyber-border text-left max-w-xs w-full">
+                  <p className="text-[10px] font-mono text-slate-500 mb-1">TIPS:</p>
+                  <ul className="text-[10px] font-mono text-slate-400 space-y-0.5">
+                    <li>• Use a high-resolution, unblurred image</li>
+                    <li>• Ensure good contrast (dark QR on white bg)</li>
+                    <li>• Avoid screenshots of QR with overlays</li>
+                    <li>• PNG format works best with OpenCV</li>
+                  </ul>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Success result */}
+            {!isScanning && !scanError && scanResult && (
+              <motion.div
+                key="result"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="space-y-4"
+              >
                 {/* Decoded URL */}
-                <div className="p-3 bg-slate-950/60 rounded border border-white/5 space-y-1">
+                <div className="p-3 bg-slate-950/60 rounded-lg border border-cyber-border space-y-1">
                   <span className="text-[10px] text-slate-500 font-mono flex items-center gap-1">
-                    <FiLink className="text-cyber-primary" />
-                    DECODED LINK PAYLOAD:
+                    <FiLink className="text-cyber-primary" /> DECODED LINK PAYLOAD:
                   </span>
                   <p className="text-xs font-mono text-slate-200 break-all">{scanResult.decoded_url}</p>
                 </div>
 
-                {/* Sub-scan results */}
-                <div className="pt-2">
-                  <span className="text-[10px] text-slate-500 font-mono block mb-2">LINK RISK SCORE:</span>
-                  <div className={`p-4 rounded-lg border flex items-center justify-between gap-3
-                    ${scanResult.scan_results.threat_level === "safe" ? "bg-cyber-success/5 border-cyber-success/20 text-cyber-success" : ""}
-                    ${scanResult.scan_results.threat_level === "warning" ? "bg-cyber-warning/5 border-cyber-warning/20 text-cyber-warning" : ""}
-                    ${scanResult.scan_results.threat_level === "dangerous" ? "bg-cyber-danger/5 border-cyber-danger/20 text-cyber-danger" : ""}
-                  `}>
-                    <div className="flex items-center gap-3">
-                      {scanResult.scan_results.threat_level === "safe" ? <FiCheckCircle className="text-2xl" /> : <FiAlertTriangle className="text-2xl" />}
-                      <div>
-                        <p className="text-xs font-mono font-bold uppercase">{scanResult.scan_results.threat_level} LEVEL</p>
-                        <p className="text-[10px] text-slate-400 font-mono mt-0.5">Confidence: {scanResult.scan_results.confidence}%</p>
-                      </div>
+                {/* Threat level badge */}
+                <div className={`p-4 rounded-lg border flex items-center justify-between gap-3 ${tlColor(scanResult.scan_results.threat_level)}`}>
+                  <div className="flex items-center gap-3">
+                    {scanResult.scan_results.threat_level === "safe"
+                      ? <FiCheckCircle className="text-2xl" />
+                      : <FiAlertTriangle className="text-2xl" />}
+                    <div>
+                      <p className="text-xs font-mono font-bold uppercase">
+                        {scanResult.scan_results.threat_level} LEVEL
+                      </p>
+                      <p className="text-[10px] text-slate-400 font-mono mt-0.5">
+                        AI Confidence: {scanResult.scan_results.confidence}%
+                      </p>
                     </div>
                   </div>
                 </div>
 
-                {/* Warning details */}
-                {scanResult.scan_results.details.length > 0 && (
-                  <ul className="space-y-1.5 pt-2">
-                    {scanResult.scan_results.details.map((detail, idx) => (
-                      <li key={idx} className="text-[11px] font-mono text-slate-400 flex items-start gap-1.5">
-                        <span className="text-cyber-primary">•</span>
-                        <span>{detail}</span>
+                {/* Details */}
+                {scanResult.scan_results.details?.length > 0 && (
+                  <ul className="space-y-1.5">
+                    {scanResult.scan_results.details.map((d, i) => (
+                      <li key={i} className="text-[11px] font-mono text-slate-400 flex items-start gap-1.5">
+                        <FiAlertCircle className="text-cyber-primary mt-0.5 shrink-0 text-xs" />
+                        {d}
                       </li>
                     ))}
                   </ul>
                 )}
-              </div>
-            ) : (
-              <div className="h-full flex items-center justify-center text-center py-12 text-slate-500 font-mono text-xs">
-                UPLOAD A QR IMAGE AND TRIGGER THE EXTRACT BUTTON TO ENGAGE THE THREAT SCANNER CORE.
-              </div>
+              </motion.div>
             )}
-          </div>
+
+            {/* Empty state */}
+            {!isScanning && !scanError && !scanResult && (
+              <motion.div
+                key="empty"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex-1 flex flex-col items-center justify-center text-center py-12 gap-3"
+              >
+                <FiUploadCloud className="text-3xl text-slate-600" />
+                <p className="text-slate-500 font-mono text-xs max-w-[180px]">
+                  Upload a QR code image and click EXTRACT & SCAN to begin analysis.
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
+      </div>
+
+      {/* How it works footer */}
+      <div className="glass-card p-4 flex flex-wrap gap-6 text-[11px] font-mono text-slate-500">
+        <span><span className="text-cyber-primary font-bold">01.</span> Upload QR image</span>
+        <span className="text-slate-700">→</span>
+        <span><span className="text-cyber-primary font-bold">02.</span> OpenCV decodes the embedded URL</span>
+        <span className="text-slate-700">→</span>
+        <span><span className="text-cyber-primary font-bold">03.</span> AI analyses link for phishing patterns</span>
+        <span className="text-slate-700">→</span>
+        <span><span className="text-cyber-primary font-bold">04.</span> Threat verdict + confidence score returned</span>
       </div>
     </div>
   );
