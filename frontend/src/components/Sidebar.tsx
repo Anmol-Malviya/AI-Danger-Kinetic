@@ -9,9 +9,10 @@ import {
   FiBookOpen, 
   FiChevronLeft, 
   FiChevronRight,
-  FiMenu,
-  FiImage
+  FiMenu
 } from "react-icons/fi";
+import { Logo } from "./Logo";
+
 
 interface SidebarProps {
   activeTab: string;
@@ -26,8 +27,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: FiGrid, color: "#06b6d4" },
     { id: "url", label: "URL Scanner", icon: FiSearch, color: "#06b6d4" },
-    { id: "text", label: "SMS & Email", icon: FiMail, color: "#06b6d4" },
-    { id: "image", label: "Image Shield", icon: FiImage, color: "#06b6d4" },
+    { id: "text", label: "SMS & Image", icon: FiMail, color: "#06b6d4" },
     { id: "qr", label: "QR Scanner", icon: FiCpu, color: "#06b6d4" },
     { id: "extension", label: "Extension Demo", icon: FiShield, color: "#06b6d4" },
     { id: "docs", label: "API & Models", icon: FiBookOpen, color: "#06b6d4" },
@@ -40,7 +40,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
         style={{ backdropFilter: "blur(12px)", background: "rgba(6,11,24,0.95)" }}
       >
         <div className="flex items-center gap-2">
-          <FiShield className="text-cyber-primary text-2xl animate-pulse-cyan" />
+          <Logo size={28} className="animate-pulse-cyan" />
           <span className="font-display font-bold tracking-wider text-md text-gradient-cyber">
             AI DANGER KINETIC
           </span>
@@ -86,10 +86,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
           />
           
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="relative p-2 bg-cyber-primary/10 rounded-lg border border-cyber-primary/25 group">
-              {/* Expanding ring on shield */}
+            <div className="relative group">
+              {/* Expanding ring on logo */}
               <div className="absolute inset-0 rounded-lg border border-cyber-primary/20 animate-ping opacity-30" />
-              <FiShield className="text-cyber-primary text-xl relative z-10" />
+              <Logo size={isCollapsed ? 32 : 36} className="relative z-10" />
             </div>
             
             {!isCollapsed && (

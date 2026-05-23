@@ -1,0 +1,40 @@
+# Node.js
+**/node_modules/
+**/dist/
+**/dist-ssr/
+**/*.local
+**/package-lock.json
+
+# Python virtual environment
+**/venv/
+**/.venv/
+**/env/
+**/ENV/
+
+# Python cache / builds
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/build/
+**/*.egg-info/
+
+# Logs and databases
+**/*.log
+**/db.sqlite3
+
+# OS / Editor files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Backend uploads and processed folders
+backend/processed/*
+!backend/processed/.gitkeep
+backend/uploads/*
+!backend/uploads/.gitkeep

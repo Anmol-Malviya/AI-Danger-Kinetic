@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" fill="none">
+  <defs>
+    <!-- Outer Shield Stroke Gradient (Cyan to Deep Blue) -->
+    <linearGradient id="shieldBorderGrad" x1="250" y1="95" x2="250" y2="405" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#00f0ff" />
+      <stop offset="50%" stop-color="#0066ff" />
+      <stop offset="100%" stop-color="#1d4ed8" />
+    </linearGradient>
+
+    <!-- Shield Inner Fill Gradient -->
+    <linearGradient id="shieldFillGrad" x1="250" y1="95" x2="250" y2="405" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#020617" />
+      <stop offset="100%" stop-color="#0b1329" />
+    </linearGradient>
+
+    <!-- Monogram Metallic Silver Gradient -->
+    <linearGradient id="monogramGrad" x1="250" y1="175" x2="250" y2="255" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="50%" stop-color="#f1f5f9" />
+      <stop offset="100%" stop-color="#cbd5e1" />
+    </linearGradient>
+
+    <!-- Circuit Trace Neon Gradient -->
+    <linearGradient id="traceGrad" x1="250" y1="246" x2="250" y2="375" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#00f0ff" />
+      <stop offset="100%" stop-color="#0066ff" />
+    </linearGradient>
+
+    <!-- Vibrant Cyan/Blue Glow Filter -->
+    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Monogram Drop Shadow -->
+    <filter id="monogramShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000000" flood-opacity="0.6" />
+    </filter>
+  </defs>
+
+  <!-- ==================== SHIELD BACKGROUND & BORDER ==================== -->
+  <!-- Dark Shield Base Fill -->
+  <path d="M 250 95 L 365 140 C 365 260 325 350 250 405 C 175 350 135 260 135 140 Z" fill="url(#shieldFillGrad)" />
+
+  <!-- Outer Neon Glowing Border -->
+  <path d="M 250 95 L 365 140 C 365 260 325 350 250 405 C 175 350 135 260 135 140 Z" 
+        fill="none" 
+        stroke="url(#shieldBorderGrad)" 
+        stroke-width="12" 
+        stroke-linejoin="round" 
+        filter="url(#neonGlow)" />
+
+  <!-- Inner Bevel Highlight (Semi-transparent White) -->
+  <path d="M 250 108 L 350 148 C 350 250 315 330 250 385 C 185 330 150 250 150 148 Z" 
+        fill="none" 
+        stroke="#ffffff" 
+        stroke-width="1.5" 
+        stroke-linejoin="round" 
+        opacity="0.15" />
+
+  <!-- ==================== NEON CIRCUIT TRACES ==================== -->
+  <g filter="url(#neonGlow)">
+    <!-- Left Circuit Trace -->
+    <path d="M 162 246 V 280 L 230 340 V 375" fill="none" stroke="url(#traceGrad)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+    <!-- Right Circuit Trace -->
+    <path d="M 338 246 V 280 L 270 340 V 375" fill="none" stroke="url(#traceGrad)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+    <!-- Center Circuit Trace -->
+    <line x1="250" y1="298" x2="250" y2="375" stroke="url(#traceGrad)" stroke-width="4.5" stroke-linecap="round" />
+
+    <!-- Terminal Circuit Nodes (Glowing Dots) -->
+    <circle cx="162" cy="246" r="6.5" fill="#00f0ff" stroke="#ffffff" stroke-width="2.5" />
+    <circle cx="338" cy="246" r="6.5" fill="#00f0ff" stroke="#ffffff" stroke-width="2.5" />
+    <circle cx="250" cy="298" r="6.5" fill="#00f0ff" stroke="#ffffff" stroke-width="2.5" />
+  </g>
+
+  <!-- ==================== GEOMETRIC AD MONOGRAM ==================== -->
+  <path d="M 168 255 L 223 175 H 268 C 308 175, 333 200, 333 215 C 333 235, 308 255, 278 255 H 260 L 252 238 H 214 L 206 255 H 168 Z 
+           M 233 193 L 221 222 H 245 Z 
+           M 258 193 L 278 237 C 298 237, 313 225, 313 215 C 313 205, 298 193, 278 193 H 258" 
+        fill="url(#monogramGrad)" 
+        fill-rule="evenodd" 
+        filter="url(#monogramShadow)" />
+</svg>

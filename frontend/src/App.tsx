@@ -9,9 +9,10 @@ import { ImageScanner } from "./components/ImageScanner";
 import { ExtensionDemo } from "./components/ExtensionDemo";
 import { Docs } from "./components/Docs";
 import { Login } from "./components/Login";
+import { Logo } from "./components/Logo";
 
 import type { DashboardStats } from "./types";
-import { FiShield, FiLogOut, FiUser, FiActivity } from "react-icons/fi";
+import { FiLogOut, FiUser, FiActivity } from "react-icons/fi";
 import { API_BASE_URL } from "./config";
 
 const fallbackStats: DashboardStats = {
@@ -147,7 +148,7 @@ const App: React.FC = () => {
           style={{ background: "rgba(6,11,24,0.8)", backdropFilter: "blur(12px)" }}
         >
           <div className="flex items-center gap-2 text-cyber-primary overflow-hidden">
-            <FiShield className="animate-pulse-cyan text-sm flex-shrink-0" />
+            <Logo size={16} className="animate-pulse-cyan flex-shrink-0" />
             <span className="font-bold tracking-wider uppercase text-[10px] flex-shrink-0">Active Node Feed:</span>
             <span className="text-slate-500 truncate max-w-xs md:max-w-xl text-[10px]">
               {systemAlert || "All systems check completed. Ready for incoming vector scans."}
@@ -208,8 +209,32 @@ const App: React.FC = () => {
                 />
               )}
               {activeTab === "url" && <UrlScanner onScanComplete={handleScanCompleted} userId={loggedInUser} />}
-              {activeTab === "text" && <TextScanner onScanComplete={handleScanCompleted} userId={loggedInUser} />}
-              {activeTab === "image" && <ImageScanner onScanComplete={handleScanCompleted} userId={loggedInUser} />}
+              {activeTab === "text" && (
+                <div className="space-y-12">
+                  <div className="border-b border-cyber-border pb-4">
+                    <h2 className="text-2xl font-display font-extrabold text-white tracking-wide uppercase">
+                      SMS & Image Scanner Core
+                    </h2>
+                    <p className="text-xs text-slate-400 font-mono mt-1">
+                      Run dual-vector analyses: scan textual message intent or upload screenshot images for OCR extraction.
+                    </p>
+                  </div>
+                  <div className="space-y-12">
+                    <TextScanner onScanComplete={handleScanCompleted} userId={loggedInUser} hideHeader={true} />
+                    <div className="relative py-4">
+                      <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                        <div className="w-full border-t border-cyber-border"></div>
+                      </div>
+                      <div className="relative flex justify-center">
+                        <span className="bg-cyber-bg px-4 text-xs font-mono text-slate-600 tracking-widest uppercase">
+                          OR SCAN SCREENSHOT FILE BELOW
+                        </span>
+                      </div>
+                    </div>
+                    <ImageScanner onScanComplete={handleScanCompleted} userId={loggedInUser} hideHeader={true} />
+                  </div>
+                </div>
+              )}
               {activeTab === "qr" && <QrScanner onScanComplete={handleScanCompleted} userId={loggedInUser} />}
               {activeTab === "extension" && <ExtensionDemo />}
               {activeTab === "docs" && <Docs />}

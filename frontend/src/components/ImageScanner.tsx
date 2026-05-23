@@ -51,11 +51,12 @@ import { API_BASE_URL } from "../config";
 interface ImageScannerProps {
   onScanComplete: () => void;
   userId: string | null;
+  hideHeader?: boolean;
 }
 
 const API_BASE = API_BASE_URL;
 
-export const ImageScanner: React.FC<ImageScannerProps> = ({ onScanComplete, userId }) => {
+export const ImageScanner: React.FC<ImageScannerProps> = ({ onScanComplete, userId, hideHeader }) => {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
@@ -141,14 +142,16 @@ export const ImageScanner: React.FC<ImageScannerProps> = ({ onScanComplete, user
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* Title */}
-      <div className="border-b border-cyber-border pb-4">
-        <h2 className="text-2xl font-display font-extrabold text-white tracking-wide">
-          AI DANGER KINETIC IMAGE SCANNER
-        </h2>
-        <p className="text-xs text-slate-400 font-mono mt-1">
-          Upload screenshots of WhatsApp chats, SMS, emails, or fake pages. OCR & AI will extract text, highlight suspicious regions, and predict threat scores.
-        </p>
-      </div>
+      {!hideHeader && (
+        <div className="border-b border-cyber-border pb-4">
+          <h2 className="text-2xl font-display font-extrabold text-white tracking-wide">
+            AI DANGER KINETIC IMAGE SCANNER
+          </h2>
+          <p className="text-xs text-slate-400 font-mono mt-1">
+            Upload screenshots of WhatsApp chats, SMS, emails, or fake pages. OCR & AI will extract text, highlight suspicious regions, and predict threat scores.
+          </p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Control Column (Upload & Previews) */}

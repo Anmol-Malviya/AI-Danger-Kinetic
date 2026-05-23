@@ -1,0 +1,304 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" fill="none">
+  <defs>
+    <!-- Cyan Shield Background Gradient (Left Side) -->
+    <linearGradient id="shieldLeftGrad" x1="250" y1="70" x2="110" y2="350" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#020617" />
+      <stop offset="70%" stop-color="#091d33" />
+      <stop offset="100%" stop-color="#083344" />
+    </linearGradient>
+
+    <!-- Purple Shield Background Gradient (Right Side) -->
+    <linearGradient id="shieldRightGrad" x1="250" y1="70" x2="390" y2="350" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#020617" />
+      <stop offset="70%" stop-color="#1e0b36" />
+      <stop offset="100%" stop-color="#4c1d95" />
+    </linearGradient>
+
+    <!-- Cyan Shield Inner Fill Gradient (Left Side) -->
+    <linearGradient id="shieldInnerLeft" x1="250" y1="87" x2="120" y2="333" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#030712" />
+      <stop offset="100%" stop-color="#0b2447" />
+    </linearGradient>
+
+    <!-- Purple Shield Inner Fill Gradient (Right Side) -->
+    <linearGradient id="shieldInnerRight" x1="250" y1="87" x2="380" y2="333" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#030712" />
+      <stop offset="100%" stop-color="#2e1065" />
+    </linearGradient>
+
+    <!-- Cyan Neon Bevel Gradient (Left Outer Stroke) -->
+    <linearGradient id="shieldLeftStroke" x1="250" y1="70" x2="110" y2="350" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="25%" stop-color="#38bdf8" />
+      <stop offset="70%" stop-color="#00f0ff" />
+      <stop offset="100%" stop-color="#0369a1" />
+    </linearGradient>
+
+    <!-- Purple Neon Bevel Gradient (Right Outer Stroke) -->
+    <linearGradient id="shieldRightStroke" x1="250" y1="70" x2="390" y2="350" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="25%" stop-color="#d8b4fe" />
+      <stop offset="70%" stop-color="#a855f7" />
+      <stop offset="100%" stop-color="#6d28d9" />
+    </linearGradient>
+
+    <!-- Cyan Horizontal Streak Gradient -->
+    <linearGradient id="cyanStreak" x1="120" y1="0" x2="20" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#00f0ff" stop-opacity="1" />
+      <stop offset="100%" stop-color="#00f0ff" stop-opacity="0" />
+    </linearGradient>
+
+    <!-- Purple Horizontal Streak Gradient -->
+    <linearGradient id="purpleStreak" x1="380" y1="0" x2="480" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="1" />
+      <stop offset="100%" stop-color="#a855f7" stop-opacity="0" />
+    </linearGradient>
+
+    <!-- Cyan Translucent Glass Fill Gradient -->
+    <linearGradient id="glassFillCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f0ff" stop-opacity="0.12" />
+      <stop offset="100%" stop-color="#0284c7" stop-opacity="0.03" />
+    </linearGradient>
+
+    <!-- Purple Translucent Glass Fill Gradient -->
+    <linearGradient id="glassFillPurple" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.12" />
+      <stop offset="100%" stop-color="#6d28d9" stop-opacity="0.03" />
+    </linearGradient>
+
+    <!-- Specular Glare/Gloss Highlight Gradient -->
+    <linearGradient id="specularGloss" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35" />
+      <stop offset="30%" stop-color="#ffffff" stop-opacity="0.02" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+
+    <!-- Cyan Eye / Laser Glow Filter -->
+    <filter id="eyeGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Purple Eye / Laser Glow Filter -->
+    <filter id="purpleEyeGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Outer Border Neon Glow Filter (Left) -->
+    <filter id="cyanGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="7" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Outer Border Neon Glow Filter (Purple) -->
+    <filter id="purpleGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="7" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- ==================== BACKGROUND GLOW STREAKS, PCB TRACES & PARTICLES ==================== -->
+  <!-- Left Side Cyan Streaks & PCB Traces -->
+  <g opacity="0.85">
+    <line x1="110" y1="150" x2="30" y2="150" stroke="url(#cyanStreak)" stroke-width="2.5" stroke-linecap="round" />
+    <line x1="100" y1="190" x2="10" y2="190" stroke="url(#cyanStreak)" stroke-width="4" stroke-linecap="round" />
+    <line x1="115" y1="225" x2="20" y2="225" stroke="url(#cyanStreak)" stroke-width="3" stroke-linecap="round" />
+    <line x1="120" y1="260" x2="40" y2="260" stroke="url(#cyanStreak)" stroke-width="3.5" stroke-linecap="round" />
+    <line x1="130" y1="295" x2="60" y2="295" stroke="url(#cyanStreak)" stroke-width="2.5" stroke-linecap="round" />
+    <line x1="140" y1="330" x2="80" y2="330" stroke="url(#cyanStreak)" stroke-width="3" stroke-linecap="round" />
+    
+    <!-- PCB Left Circuit Traces -->
+    <path d="M 110,210 H 75 L 60,195 H 30" stroke="#00f0ff" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.8" filter="url(#eyeGlow)" />
+    <circle cx="30" cy="195" r="3" fill="#00f0ff" />
+    <path d="M 95,250 H 40" stroke="#00f0ff" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.8" filter="url(#eyeGlow)" />
+    <circle cx="40" cy="250" r="3.5" fill="#00f0ff" />
+    <path d="M 110,290 H 75 L 60,305 H 20" stroke="#00f0ff" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.8" filter="url(#eyeGlow)" />
+    <circle cx="20" cy="305" r="3" fill="#00f0ff" />
+
+    <!-- Cyan Particles -->
+    <rect x="75" y="140" width="5" height="5" fill="#00f0ff" opacity="0.7" transform="rotate(15 75 140)" />
+    <rect x="45" y="180" width="4" height="4" fill="#00f0ff" opacity="0.9" />
+    <rect x="25" y="210" width="6" height="6" fill="#00f0ff" opacity="0.6" transform="rotate(45 25 210)" />
+    <rect x="65" y="240" width="4" height="4" fill="#00f0ff" opacity="0.85" />
+    <rect x="55" y="270" width="5" height="5" fill="#00f0ff" opacity="0.75" />
+    <rect x="90" y="300" width="4" height="4" fill="#00f0ff" opacity="0.8" />
+  </g>
+
+  <!-- Right Side Purple Streaks & PCB Traces -->
+  <g opacity="0.85">
+    <line x1="390" y1="150" x2="470" y2="150" stroke="url(#purpleStreak)" stroke-width="2.5" stroke-linecap="round" />
+    <line x1="400" y1="190" x2="490" y2="190" stroke="url(#purpleStreak)" stroke-width="4" stroke-linecap="round" />
+    <line x1="385" y1="225" x2="480" y2="225" stroke="url(#purpleStreak)" stroke-width="3.5" stroke-linecap="round" />
+    <line x1="380" y1="260" x2="460" y2="260" stroke="url(#purpleStreak)" stroke-width="3.5" stroke-linecap="round" />
+    <line x1="370" y1="295" x2="440" y2="295" stroke="url(#purpleStreak)" stroke-width="2.5" stroke-linecap="round" />
+    <line x1="360" y1="330" x2="420" y2="330" stroke="url(#purpleStreak)" stroke-width="3" stroke-linecap="round" />
+
+    <!-- PCB Right Circuit Traces -->
+    <path d="M 390,210 H 425 L 440,195 H 470" stroke="#a855f7" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.8" filter="url(#purpleEyeGlow)" />
+    <circle cx="470" cy="195" r="3" fill="#a855f7" />
+    <path d="M 405,250 H 460" stroke="#a855f7" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.8" filter="url(#purpleEyeGlow)" />
+    <circle cx="460" cy="250" r="3.5" fill="#a855f7" />
+    <path d="M 390,290 H 425 L 440,305 H 480" stroke="#a855f7" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.8" filter="url(#purpleEyeGlow)" />
+    <circle cx="480" cy="305" r="3" fill="#a855f7" />
+
+    <!-- Purple Particles -->
+    <rect x="420" y="140" width="5" height="5" fill="#a855f7" opacity="0.7" transform="rotate(15 420 140)" />
+    <rect x="450" y="180" width="4" height="4" fill="#a855f7" opacity="0.9" />
+    <rect x="470" y="210" width="6" height="6" fill="#a855f7" opacity="0.6" transform="rotate(45 470 210)" />
+    <rect x="430" y="240" width="4" height="4" fill="#a855f7" opacity="0.85" />
+    <rect x="440" y="270" width="5" height="5" fill="#a855f7" opacity="0.75" />
+    <rect x="405" y="300" width="4" height="4" fill="#a855f7" opacity="0.8" />
+  </g>
+
+  <!-- ==================== CONCENTRIC HUD RINGS ==================== -->
+  <!-- Left Side HUD Arcs (Cyan) -->
+  <path d="M 250,15 A 210,210 0 0,0 250,435" stroke="#00f0ff" stroke-width="1.5" stroke-dasharray="8 12" fill="none" opacity="0.35" />
+  <path d="M 250,25 A 200,200 0 0,0 250,425" stroke="#00f0ff" stroke-width="3.5" stroke-dasharray="80 20 15 20" fill="none" opacity="0.65" filter="url(#cyanGlow)" />
+  <path d="M 250,45 A 180,180 0 0,0 250,405" stroke="#00f0ff" stroke-width="1" stroke-dasharray="4 6" fill="none" opacity="0.25" />
+
+  <!-- Right Side HUD Arcs (Purple) -->
+  <path d="M 250,15 A 210,210 0 0,1 250,435" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="8 12" fill="none" opacity="0.35" />
+  <path d="M 250,25 A 200,200 0 0,1 250,425" stroke="#a855f7" stroke-width="3.5" stroke-dasharray="80 20 15 20" fill="none" opacity="0.65" filter="url(#purpleGlow)" />
+  <path d="M 250,45 A 180,180 0 0,1 250,405" stroke="#a855f7" stroke-width="1" stroke-dasharray="4 6" fill="none" opacity="0.25" />
+
+  <!-- ==================== SHIELD BACKGROUND & BEVELS ==================== -->
+  <!-- Outer Shield Shadow -->
+  <path d="M 250,70 C 205,80 145,83 95,95 C 80,165 90,245 112,300 C 152,343 205,367 250,380 C 295,367 348,343 388,300 C 410,245 420,165 405,95 C 355,83 295,80 250,70 Z" fill="#040812" opacity="0.5" />
+
+  <!-- Shield Base Background (Left Half) -->
+  <path d="M 250,75 C 208,84 152,87 105,98 C 91,165 100,240 120,293 C 158,333 208,355 250,367 Z" fill="url(#shieldLeftGrad)" />
+  
+  <!-- Shield Base Background (Right Half) -->
+  <path d="M 250,75 C 292,84 348,87 395,98 C 409,165 400,240 380,293 C 342,333 292,355 250,367 Z" fill="url(#shieldRightGrad)" />
+
+  <!-- Shield Inner Wall (Left Half) -->
+  <path d="M 250,87 C 214,95 164,98 120,108 C 108,165 116,230 133,277 C 167,313 212,333 250,343 Z" fill="url(#shieldInnerLeft)" stroke="rgba(255, 255, 255, 0.05)" stroke-width="1" />
+
+  <!-- Shield Inner Wall (Right Half) -->
+  <path d="M 250,87 C 286,95 336,98 380,108 C 392,165 384,230 367,277 C 333,313 288,333 250,343 Z" fill="url(#shieldInnerRight)" stroke="rgba(255, 255, 255, 0.05)" stroke-width="1" />
+
+  <!-- Outer Neon Bevel Border (Left Side) -->
+  <path d="M 250,75 C 208,84 152,87 105,98 C 91,165 100,240 120,293 C 158,333 208,355 250,367" fill="none" stroke="url(#shieldLeftStroke)" stroke-width="6" stroke-linecap="round" filter="url(#cyanGlow)" />
+
+  <!-- Outer Neon Bevel Border (Right Side) -->
+  <path d="M 250,75 C 292,84 348,87 395,98 C 409,165 400,240 380,293 C 342,333 292,355 250,367" fill="none" stroke="url(#shieldRightStroke)" stroke-width="6" stroke-linecap="round" filter="url(#purpleGlow)" />
+
+  <!-- Vertical Divider Line (Glossy core) -->
+  <line x1="250" y1="75" x2="250" y2="367" stroke="#ffffff" stroke-width="2" opacity="0.9" />
+  <line x1="250" y1="75" x2="250" y2="367" stroke="#00f0ff" stroke-width="4" opacity="0.35" filter="url(#eyeGlow)" />
+
+  <!-- ==================== THREAT & SECURITY VECTORS ==================== -->
+  <!-- [LEFT - CYAN SECTION] -->
+  <!-- 1. Web Globe Outline -->
+  <g transform="translate(145, 120)" opacity="0.9">
+    <circle cx="15" cy="15" r="14" stroke="#00f0ff" stroke-width="2" fill="none" filter="url(#eyeGlow)" />
+    <ellipse cx="15" cy="15" rx="5" ry="14" stroke="#00f0ff" stroke-width="1.2" fill="none" />
+    <ellipse cx="15" cy="15" rx="14" ry="5.5" stroke="#00f0ff" stroke-width="1.2" fill="none" />
+    <line x1="15" y1="1" x2="15" y2="29" stroke="#00f0ff" stroke-width="1.2" />
+    <line x1="1" y1="15" x2="29" y2="15" stroke="#00f0ff" stroke-width="1.2" />
+  </g>
+
+  <!-- 2. Magnifying glass scanner (Bottom Left) -->
+  <g transform="translate(132, 222)" opacity="0.9">
+    <!-- Circle -->
+    <circle cx="15" cy="15" r="12" stroke="#00f0ff" stroke-width="2.5" fill="none" filter="url(#eyeGlow)" />
+    <path d="M 5,12 A 10 10 0 0 1 20,8" stroke="#ffffff" stroke-width="1" stroke-linecap="round" opacity="0.4" />
+    <!-- Handle -->
+    <line x1="24" y1="24" x2="38" y2="38" stroke="#00f0ff" stroke-width="4.5" stroke-linecap="round" />
+    <line x1="25" y1="25" x2="37" y2="37" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" />
+  </g>
+
+  <!-- [RIGHT - PURPLE SECTION] -->
+  <!-- 1. Envelope Outline (Email/Phishing threat) -->
+  <g transform="translate(310, 120)" opacity="0.9">
+    <rect x="0" y="0" width="38" height="26" rx="3" stroke="#a855f7" stroke-width="2.2" fill="none" filter="url(#purpleEyeGlow)" />
+    <path d="M 0,0 L 19,13 L 38,0" fill="none" stroke="#a855f7" stroke-width="2" stroke-linejoin="round" />
+  </g>
+
+  <!-- 2. Chat bubble Outline (SMS threat detection) -->
+  <g transform="translate(325, 180)" opacity="0.9">
+    <rect x="0" y="0" width="36" height="25" rx="5" stroke="#a855f7" stroke-width="2.2" fill="none" filter="url(#purpleEyeGlow)" />
+    <path d="M 6,25 L 3,31 L 13,25 Z" fill="#040812" stroke="#a855f7" stroke-width="1.8" stroke-linejoin="round" />
+    <!-- Message dots -->
+    <circle cx="11" cy="12.5" r="2.2" fill="#a855f7" />
+    <circle cx="18" cy="12.5" r="2.2" fill="#a855f7" />
+    <circle cx="25" cy="12.5" r="2.2" fill="#a855f7" />
+  </g>
+
+  <!-- 3. Alert triangle indicator (Bottom Right) -->
+  <g transform="translate(310, 228)" opacity="0.9">
+    <path d="M 25,2 L 47,40 L 3,40 Z" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linejoin="round" filter="url(#purpleEyeGlow)" />
+    <line x1="25" y1="13" x2="25" y2="28" stroke="#a855f7" stroke-width="3.5" stroke-linecap="round" />
+    <circle cx="25" cy="34" r="2.2" fill="#a855f7" />
+  </g>
+
+  <!-- ==================== CENTRAL CYBORG HOODED FIGURE ==================== -->
+  <!-- Outer Silhouette White Border (Separation layer) -->
+  <path d="M 250,115 C 220,115 190,135 190,180 C 190,205 198,222 208,235 C 185,247 168,265 158,292 C 154,303 162,305 190,305 C 220,305 250,300 250,300 C 250,300 280,305 310,305 C 338,305 346,303 342,292 C 332,265 315,247 292,235 C 292,235 302,222 310,180 C 310,135 280,115 250,115 Z" fill="#ffffff" />
+
+  <!-- Inner Dark Hooded Shield Mask Body -->
+  <path d="M 250,120 C 223,120 195,139 195,180 C 195,202 203,219 212,230 C 190,242 173,260 163,287 C 160,296 168,298 190,298 C 218,298 250,293 250,293 C 250,293 282,298 310,298 C 332,298 340,296 337,287 C 327,260 310,242 288,230 C 288,230 297,219 305,180 C 305,139 277,120 250,120 Z" fill="#080c14" />
+
+  <!-- Shadow crease inside hood profile -->
+  <path d="M 250,120 C 223,120 195,139 195,180 C 195,202 203,219 212,230 Z" fill="#04060b" />
+  
+  <!-- Facemask area (Completely blacked out) -->
+  <path d="M 250,142 C 233,142 222,159 222,182 C 222,198 231,212 250,212 C 269,212 278,198 278,182 C 278,159 267,142 250,142 Z" fill="#020305" />
+
+  <!-- CYBERNETIC MASK PCB DETAILED TRACES (Left half of face) -->
+  <g stroke="#00f0ff" stroke-width="1.25" fill="none" opacity="0.8" filter="url(#eyeGlow)">
+    <path d="M 235,160 H 244 V 170 H 248" />
+    <path d="M 226,175 H 234 L 240,181 V 195" />
+    <path d="M 230,195 H 238 L 244,189 V 176" />
+    <path d="M 242,202 H 248 V 208" />
+    <!-- Tiny Circuit Trace Nodes -->
+    <circle cx="235" cy="160" r="1" fill="#00f0ff" />
+    <circle cx="226" cy="175" r="1" fill="#00f0ff" />
+    <circle cx="240" cy="195" r="1" fill="#00f0ff" />
+    <circle cx="230" cy="195" r="1" fill="#00f0ff" />
+  </g>
+
+  <!-- Left Glowing Cyan Eye (Slit) -->
+  <path d="M 230,176 C 234,173 241,174 246,179 C 242,181 236,180 230,176 Z" fill="#00f0ff" filter="url(#eyeGlow)" />
+  <path d="M 230,176 C 234,173 241,174 246,179 C 242,181 236,180 230,176 Z" fill="#ffffff" />
+
+  <!-- Right Glowing Purple Eye (Slit) -->
+  <path d="M 270,176 C 266,173 259,174 254,179 C 258,181 264,180 270,176 Z" fill="#a855f7" filter="url(#purpleEyeGlow)" />
+  <path d="M 270,176 C 266,173 259,174 254,179 C 258,181 264,180 270,176 Z" fill="#ffffff" />
+
+  <!-- Vertical Split Face Refraction Line -->
+  <line x1="250" y1="120" x2="250" y2="212" stroke="#ffffff" stroke-width="1.25" opacity="0.6" />
+  <line x1="250" y1="212" x2="250" y2="293" stroke="#ffffff" stroke-width="1" opacity="0.3" />
+
+  <!-- ==================== FRONT LOCK & KEYHOLE CORE ==================== -->
+  <!-- Neon Split Portal around the Lock -->
+  <path d="M 250,260 A 30,30 0 0,0 250,320" stroke="#00f0ff" stroke-width="2.5" fill="none" opacity="0.85" filter="url(#eyeGlow)" />
+  <path d="M 250,260 A 30,30 0 0,1 250,320" stroke="#a855f7" stroke-width="2.5" fill="none" opacity="0.85" filter="url(#purpleEyeGlow)" />
+
+  <!-- 1. Lock Shackle (Behind body) -->
+  <path d="M 235,280 V 262 C 235,250 265,250 265,262 V 280" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round" />
+  <path d="M 235,280 V 262 C 235,250 265,250 265,262 V 280" fill="none" stroke="#e2e8f0" stroke-width="2.5" stroke-linecap="round" />
+
+  <!-- 2. Lock Body -->
+  <rect x="228" y="275" width="44" height="34" rx="6" fill="#ffffff" stroke="#1e293b" stroke-width="1.5" />
+  
+  <!-- Lock Core Keyhole -->
+  <circle cx="250" cy="287" r="3" fill="#0f172a" />
+  <polygon points="248.5,287 251.5,287 253,298 247,298" fill="#0f172a" />
+
+  <!-- Specular glare on Lock Body -->
+  <path d="M 230,277 H 270 V 283 L 230,288 Z" fill="url(#specularGloss)" opacity="0.65" />
+</svg>

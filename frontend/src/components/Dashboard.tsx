@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   FiShield, 
@@ -10,7 +10,12 @@ import {
   FiZap,
   FiSearch,
   FiMail,
-  FiCpu
+  FiCpu,
+  FiGlobe,
+  FiMessageSquare,
+  FiChevronDown,
+  FiInbox,
+  FiInfo
 } from "react-icons/fi";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
@@ -37,9 +42,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
 }) => {
   const [filter, setFilter] = useState<"all" | "safe" | "warning" | "dangerous">("all");
   const [expandedLogId, setExpandedLogId] = useState<string | number | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Mouse-track glow for quick-launch cards
   const [mousePos, setMousePos] = useState<Record<string, { x: number; y: number }>>({});
+
   const handleCardMouseMove = useCallback((id: string, e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     setMousePos(prev => ({ ...prev, [id]: { x: e.clientX - rect.left, y: e.clientY - rect.top } }));
@@ -133,9 +140,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   const filteredHistory = stats.history.filter((item) => {
-    if (filter === "all") return true;
-    return item.threat_level === filter;
+    const matchesFilter = filter === "all" ? true : item.threat_level === filter;
+    const matchesSearch = searchQuery.trim() === "" 
+      ? true 
+      : item.target.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.type.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesFilter && matchesSearch;
   });
+
 
   // PDF report downloader
   const handleDownloadPDF = () => {
@@ -323,8 +335,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </motion.div>
 
         {/* Chart Card */}
-        <motion.div variants={cardVariants} className="glass-card p-6 flex flex-col">
-          <div className="flex items-center gap-2 mb-4">
+        <motion.div variants={cardVariants} className="glass-card p-6 flex flex-col justify-between">
+          <div className="flex items-center gap-2 mb-3">
             <div className="p-1.5 bg-cyber-primary/10 rounded-lg border border-cyber-primary/20">
               <FiActivity className="text-cyber-primary text-base" />
             </div>
@@ -332,13 +344,31 @@ export const Dashboard: React.FC<DashboardProps> = ({
               RISK DISTRIBUTION
             </h2>
           </div>
-          <div className="relative flex-1 min-h-[160px] flex items-center justify-center">
+          <div className="relative flex-grow flex flex-col justify-between mt-2">
             {stats.total_scans === 0 ? (
-              <p className="text-xs font-mono text-slate-600">No scanned items found.</p>
-            ) : (
-              <div className="w-full h-full max-h-[160px]">
-                <Doughnut data={chartData} options={chartOptions} />
+              <div className="flex-1 flex items-center justify-center min-h-[160px]">
+                <p className="text-xs font-mono text-slate-600">No scanned items found.</p>
               </div>
+            ) : (
+              <>
+                <div className="w-full h-[140px] flex items-center justify-center">
+                  <Doughnut data={chartData} options={chartOptions} />
+                </div>
+                <div className="mt-4 pt-3 border-t border-cyber-border space-y-2 font-mono text-[10px] text-slate-400">
+                  <div className="flex justify-between items-center px-1">
+                    <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-cyber-success" /> SAFE ELEMENTS</span>
+                    <span className="font-bold text-slate-300">{stats.metrics.safe} ({stats.total_scans > 0 ? Math.round((stats.metrics.safe / stats.total_scans) * 100) : 0}%)</span>
+                  </div>
+                  <div className="flex justify-between items-center px-1">
+                    <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-cyber-warning" /> SUSPICIOUS WARNINGS</span>
+                    <span className="font-bold text-slate-300">{stats.metrics.warning} ({stats.total_scans > 0 ? Math.round((stats.metrics.warning / stats.total_scans) * 100) : 0}%)</span>
+                  </div>
+                  <div className="flex justify-between items-center px-1">
+                    <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-cyber-danger" /> BLOCKED THREATS</span>
+                    <span className="font-bold text-slate-300">{stats.metrics.dangerous} ({stats.total_scans > 0 ? Math.round((stats.metrics.dangerous / stats.total_scans) * 100) : 0}%)</span>
+                  </div>
+                </div>
+              </>
             )}
           </div>
         </motion.div>
@@ -394,7 +424,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       {/* Live History logs */}
       <motion.div variants={cardVariants} className="glass-card p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-cyber-border pb-4 mb-4">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-cyber-border pb-4 mb-4">
           <div className="flex items-center gap-2">
             <div className="p-1.5 bg-cyber-primary/10 rounded-lg border border-cyber-primary/20">
               <FiClock className="text-cyber-primary text-base" />
@@ -408,42 +438,67 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <span className="w-1.5 h-1.5 rounded-full bg-cyber-success" style={{ boxShadow: "0 0 5px rgba(34,197,94,0.8)", marginLeft: -10 }} />
             </div>
           </div>
-          
-          {/* Filters */}
-          <div className="flex flex-wrap items-center gap-1 p-1 rounded-xl border border-cyber-border" style={{ background: "rgba(6,11,24,0.8)" }}>
-            {(["all", "safe", "warning", "dangerous"] as const).map((type) => (
-              <button
-                key={type}
-                onClick={() => setFilter(type)}
-                className={`relative px-3 py-1 rounded-lg text-xs font-mono tracking-wider transition-all
-                  ${filter === type 
-                    ? "text-cyber-primary" 
-                    : "text-slate-600 hover:text-slate-400"
-                  }`}
-              >
-                {filter === type && (
-                  <motion.div
-                    layoutId="filterBg"
-                    className="absolute inset-0 rounded-lg bg-cyber-primary/15 border border-cyber-primary/25"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.35 }}
-                  />
-                )}
-                <span className="relative z-10">{type.toUpperCase()}</span>
-              </button>
-            ))}
+
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+            {/* Search Input */}
+            <div className="relative flex-grow sm:w-64">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-500">
+                <FiSearch className="text-xs text-cyber-primary" />
+              </span>
+              <input
+                type="text"
+                placeholder="SEARCH SCANS..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-8 pr-8 py-1.5 rounded-xl border border-cyber-border bg-slate-950/60 text-slate-200 font-mono text-xs placeholder-slate-600 focus:outline-none focus:border-cyber-primary/60 focus:ring-1 focus:ring-cyber-primary/30 transition-all"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-500 hover:text-slate-300 font-mono text-[9px] font-bold"
+                >
+                  CLEAR
+                </button>
+              )}
+            </div>
+            
+            {/* Filters */}
+            <div className="flex items-center gap-1 p-1 rounded-xl border border-cyber-border" style={{ background: "rgba(6,11,24,0.8)" }}>
+              {(["all", "safe", "warning", "dangerous"] as const).map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setFilter(type)}
+                  className={`relative px-2.5 py-1 rounded-lg text-[10px] font-mono tracking-wider transition-all
+                    ${filter === type 
+                      ? "text-cyber-primary font-bold" 
+                      : "text-slate-600 hover:text-slate-400"
+                    }`}
+                >
+                  {filter === type && (
+                    <motion.div
+                      layoutId="filterBg"
+                      className="absolute inset-0 rounded-lg bg-cyber-primary/15 border border-cyber-primary/25"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.35 }}
+                    />
+                  )}
+                  <span className="relative z-10">{type.toUpperCase()}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Logs */}
-        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
+        <div className="space-y-2.5 max-h-[400px] overflow-y-auto pr-1">
           <AnimatePresence mode="popLayout">
             {filteredHistory.length === 0 ? (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="text-center py-10 text-slate-600 font-mono text-xs"
+                className="flex flex-col items-center justify-center py-12 text-slate-600 font-mono text-xs gap-2"
               >
-                NO SCAN RECORDS FOUND FOR THIS FILTER.
+                <FiInbox className="text-2xl text-slate-700" />
+                <span>NO SCAN RECORDS FOUND.</span>
               </motion.div>
             ) : (
               filteredHistory.map((item, index) => {
@@ -458,42 +513,83 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     ? "rgba(245,158,11,0.15)" 
                     : "rgba(239,68,68,0.2)";
 
+                const hoverBorderColor = isSafe
+                  ? "rgba(34,197,94,0.35)"
+                  : isWarning
+                    ? "rgba(245,158,11,0.35)"
+                    : "rgba(239,68,68,0.45)";
+
+                const getLogIcon = (type: string) => {
+                  switch (type.toLowerCase()) {
+                    case "url":
+                      return <FiGlobe className="text-cyan-400 text-sm" />;
+                    case "sms":
+                      return <FiMessageSquare className="text-purple-400 text-sm" />;
+                    case "email":
+                      return <FiMail className="text-emerald-400 text-sm" />;
+                    case "qr code":
+                      return <FiCpu className="text-amber-400 text-sm" />;
+                    default:
+                      return <FiSearch className="text-slate-400 text-sm" />;
+                  }
+                };
+
+                const logIcon = getLogIcon(item.type);
+
                 return (
                   <motion.div
                     key={item.id}
                     initial={{ opacity: 0, x: -16 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 16 }}
-                    transition={{ delay: index * 0.06, duration: 0.35 }}
-                    className="rounded-xl overflow-hidden cursor-pointer"
-                    style={{ border: `1px solid ${borderColor}`, background: "rgba(15,23,42,0.4)" }}
-                    whileHover={{ background: "rgba(15,23,42,0.7)" }}
+                    transition={{ delay: index * 0.04, duration: 0.35 }}
+                    className="rounded-xl overflow-hidden cursor-pointer transition-all duration-300"
+                    style={{ 
+                      border: `1px solid ${borderColor}`, 
+                      background: "rgba(15,23,42,0.4)" 
+                    }}
+                    whileHover={{ 
+                      background: "rgba(15,23,42,0.75)",
+                      borderColor: hoverBorderColor,
+                      boxShadow: isDanger 
+                        ? "0 0 15px rgba(239,68,68,0.06)" 
+                        : isWarning 
+                          ? "0 0 15px rgba(245,158,11,0.06)" 
+                          : "0 0 15px rgba(6,182,212,0.06)"
+                    }}
                     onClick={() => setExpandedLogId(isExpanded ? null : item.id)}
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-3">
                       <div className="flex items-center gap-3">
-                        <span 
-                          className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold tracking-wider"
+                        {/* Icon Container */}
+                        <div 
+                          className="w-7 h-7 rounded-lg flex items-center justify-center border animate-pulse-cyan"
                           style={{
                             background: "rgba(6,11,24,0.8)",
-                            border: `1px solid ${borderColor}`,
-                            color: isSafe ? "#22c55e" : isWarning ? "#f59e0b" : "#ef4444",
+                            borderColor: borderColor
                           }}
                         >
-                          {item.type}
-                        </span>
-                        <span className="text-sm text-slate-300 font-mono truncate max-w-xs sm:max-w-sm md:max-w-md">
-                          {item.target}
-                        </span>
+                          {logIcon}
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                          <span 
+                            className="text-[9px] font-mono font-bold tracking-widest text-slate-500 uppercase"
+                          >
+                            {item.type}
+                          </span>
+                          <span className="text-xs text-slate-300 font-mono truncate max-w-xs sm:max-w-sm md:max-w-md">
+                            {item.target}
+                          </span>
+                        </div>
                       </div>
 
-                      <div className="flex items-center gap-4 flex-shrink-0">
-                        <div className="text-xs font-mono">
+                      <div className="flex items-center gap-4 flex-shrink-0 justify-between sm:justify-end">
+                        <div className="text-[10px] font-mono">
                           <span className="text-slate-600">CONF:</span>{" "}
                           <span className="text-white font-bold">{item.confidence}%</span>
                         </div>
                         
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold font-mono tracking-wider
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold font-mono tracking-wider
                           ${isSafe ? "bg-cyber-success/10 text-cyber-success border border-cyber-success/20" : ""}
                           ${isWarning ? "bg-cyber-warning/10 text-cyber-warning border border-cyber-warning/20" : ""}
                           ${isDanger ? "bg-cyber-danger/10 text-cyber-danger border border-cyber-danger/25" : ""}
@@ -505,6 +601,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           {isDanger && <FiAlertTriangle className="text-xs" />}
                           {item.threat_level.toUpperCase()}
                         </span>
+
+                        {/* Chevron Expand Indicator */}
+                        <motion.div
+                          animate={{ rotate: isExpanded ? 180 : 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="text-slate-500 hidden sm:block"
+                        >
+                          <FiChevronDown className="text-sm" />
+                        </motion.div>
                       </div>
                     </div>
 
@@ -517,23 +622,30 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
                           className="overflow-hidden"
                         >
-                          <div className="px-4 pb-4 border-t border-white/5 text-xs font-mono text-slate-400 space-y-2 pt-3" style={{ background: "rgba(6,11,24,0.5)" }}>
+                          <div className="px-4 pb-4 border-t border-white/5 text-[11px] font-mono text-slate-400 space-y-2 pt-3" style={{ background: "rgba(6,11,24,0.5)" }}>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <p className="text-slate-500 mb-1.5 font-bold tracking-wider">ANALYSIS METRIC</p>
-                                <div className="space-y-1">
-                                  <p><span className="text-slate-600">●</span> ID: ADK-{item.id}</p>
-                                  <p><span className="text-slate-600">●</span> Type: {item.type} Vector Classification</p>
-                                  <p><span className="text-slate-600">●</span> Timestamp: {new Date(item.timestamp).toLocaleString()}</p>
+                              <div className="bg-slate-950/40 p-3 rounded-lg border border-white/5">
+                                <p className="text-slate-500 mb-2 font-bold tracking-wider text-[10px]">ANALYSIS METRIC</p>
+                                <div className="space-y-1 text-slate-400">
+                                  <p><span className="text-cyber-primary/60 mr-1.5">›</span> <span className="text-slate-500">ID:</span> ADK-{item.id}</p>
+                                  <p><span className="text-cyber-primary/60 mr-1.5">›</span> <span className="text-slate-500">TYPE:</span> {item.type} Vector</p>
+                                  <p><span className="text-cyber-primary/60 mr-1.5">›</span> <span className="text-slate-500">CONFIDENCE:</span> {item.confidence}%</p>
+                                  <p><span className="text-cyber-primary/60 mr-1.5">›</span> <span className="text-slate-500">TIMESTAMP:</span> {new Date(item.timestamp).toLocaleString()}</p>
                                 </div>
                               </div>
-                              <div>
-                                <p className="text-slate-500 mb-1.5 font-bold tracking-wider">DETECTION ENGINE SIGNATURE</p>
-                                <p className="text-slate-300 leading-relaxed">
-                                  {isSafe && "No signature anomalies detected. Verified clean heuristics."}
-                                  {isWarning && "Moderate risks flagged. Review subdomains or character pattern configurations."}
-                                  {isDanger && "CRITICAL WARNING: The content exhibits known high-urgency keywords or structural spoofing patterns matching malicious databases."}
-                                </p>
+                              <div className="bg-slate-950/40 p-3 rounded-lg border border-white/5 flex flex-col justify-between">
+                                <div>
+                                  <p className="text-slate-500 mb-2 font-bold tracking-wider text-[10px]">DETECTION ENGINE SIGNATURE</p>
+                                  <p className="text-slate-300 leading-relaxed">
+                                    {isSafe && "No signature anomalies detected. Heuristic scanning reports fully clean payload. Matches low-risk classification matrices."}
+                                    {isWarning && "Moderate risks flagged. Detected warning indicators or suspicious TLD/formatting. Exercise validation caution before interaction."}
+                                    {isDanger && "CRITICAL WARNING: The analyzed item matches high-risk heuristics or contains known urgency/lottery deception keywords."}
+                                  </p>
+                                </div>
+                                <div className="mt-3 pt-2 border-t border-white/5 flex items-center gap-1.5 text-[9px] text-slate-500">
+                                  <FiInfo className="text-cyber-primary text-xs" />
+                                  <span>Dynamic Heuristics Scan Signature Verified</span>
+                                </div>
                               </div>
                             </div>
                           </div>

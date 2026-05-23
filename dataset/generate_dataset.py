@@ -1,5 +1,6 @@
 import os
 import csv
+import random
 
 def generate_url_dataset():
     # Phishing patterns (label = 1)
@@ -28,7 +29,21 @@ def generate_url_dataset():
         "bankofamerica-card-security.info",
         "coinbase-login-verify.xyz",
         "dropbox-shared-file-download.net",
-        "adobe-pdf-viewer-online.info"
+        "adobe-pdf-viewer-online.info",
+        "openai-gpt5-beta-access.xyz",
+        "zoom-meeting-record-download.net",
+        "slack-workspace-invite-auth.com",
+        "discord-nitro-gift-free.xyz",
+        "github-security-alert-verify.com",
+        "kotak-netbanking-verify.xyz",
+        "axisbank-kyc-update.online",
+        "hdfc-netbanking-verification.info",
+        "paytm-wallet-refund-bonus.net",
+        "phonepe-scratchcard-win.xyz",
+        "royalmail-parcel-redeliver.top",
+        "fedex-tracking-invoice-hold.site",
+        "coinbase-wallet-recovery-key.net",
+        "blockchain-wallet-restore.com"
     ]
     
     phishing_paths = [
@@ -45,11 +60,11 @@ def generate_url_dataset():
     ]
     
     phishing_urls = []
-    # Mix domains and paths
+    # Mix domains and paths (use first 6 paths for balance)
     for domain in phishing_domains:
-        for path in phishing_paths[:4]:
+        for path in phishing_paths[:6]:
             phishing_urls.append(f"http://{domain}{path}")
-            phishing_urls.append(f"https://{domain}{path}?session_id=12893891&ref=security")
+            phishing_urls.append(f"https://{domain}{path}?session_id={10000000 + hash(domain) % 90000000}&ref=security")
             
     # Safe domains (label = 0)
     safe_domains = [
@@ -77,7 +92,23 @@ def generate_url_dataset():
         "cnn.com",
         "reddit.com",
         "medium.com",
-        "spotify.com"
+        "spotify.com",
+        "openai.com",
+        "zoom.us",
+        "slack.com",
+        "discord.com",
+        "adobe.com",
+        "kotak.com",
+        "axisbank.com",
+        "hdfcbank.com",
+        "icicibank.com",
+        "paytm.com",
+        "phonepe.com",
+        "royalmail.com",
+        "coinbase.com",
+        "blockchain.com",
+        "python.org",
+        "npmjs.com"
     ]
     
     safe_paths = [
@@ -94,8 +125,9 @@ def generate_url_dataset():
     ]
     
     safe_urls = []
+    # Mix domains and paths (use first 6 paths for balance)
     for domain in safe_domains:
-        for path in safe_paths[:4]:
+        for path in safe_paths[:6]:
             safe_urls.append(f"https://www.{domain}{path}")
             safe_urls.append(f"https://{domain}{path}")
 
@@ -112,114 +144,135 @@ def generate_url_dataset():
     print(f"Generated {len(phishing_urls) + len(safe_urls)} URLs (phishing: {len(phishing_urls)}, safe: {len(safe_urls)})")
 
 def generate_text_dataset():
-    # Scam texts (label = 1)
-    scam_texts = [
-        # YONO / SBI / Indian banking scams
-        "Dear Customer, your YONO SBI Bank account will be suspended today. Please avoid suspension by updating your KYC at http://yono-sbi-kyc.com/update",
-        "ALERT: Your SBI NetBanking account has been blocked due to suspicious activity. To reactivate, click here: http://sbi-net-banking.net/login",
-        "Dear customer, your SBI YONO account has expired. Please verify your Aadhaar card and PAN details now: http://yono-sbi-verification.xyz",
-        "SBI Alert: Your YONO account will be permanently deactivated. Tap to avoid suspension: http://sbi-yono-update.online/kyc",
-        "Important: Your SBI credit card has been blocked. Call customer care or update KYC immediately at http://sbi-card-verify.net",
-        "Dear Customer, your Yono SBI account has been locked. Verify now at http://yono-sbi-security.info",
-        "Attention: Your HDFC bank account requires immediate KYC verification. To avoid deactivation, click: http://hdfc-kyc-verify.net",
-        "ICICI Bank Alert: We detected unusual login activity. Confirm your password here: http://icicibank-secure-login.online",
-        "Paytm KYC expired! Your wallet will be suspended within 24 hours. Verify now: http://paytm-kyc-verification.xyz",
-        "Dear customer, your bank account has been blocked. Update your PAN card details to avoid suspension: http://netbanking-update-pan.org",
+    # Templates for Scam texts (label = 1)
+    scam_templates = [
+        # Banking suspension
+        "Dear {User}, your {Bank} account will be suspended. To prevent deactivation, update your KYC immediately at {Url}",
+        "Alert: Your {Bank} netbanking access is blocked due to suspicious activity. Verify details now: {Url}",
+        "Dear customer, your {Bank} card has been blocked. Click here to reactivate: {Url}",
+        "{Bank} Notice: Unused rewards points expiring today! Claim your cash back of {Amount} now: {Url}",
+        "Action Required: Unusual sign-in attempt detected on your {Bank} account. Secure it now: {Url}",
+        "Dear customer, update your PAN/Aadhaar card for {Bank} account to avoid deactivation: {Url}",
         
-        # Courier / Delivery scams
-        "India Post: Your package cannot be delivered due to wrong address info. Update address & pay online fee: http://indiapost-delivery-fees.xyz",
-        "USPS Alert: Your package is on hold at our distribution facility. Update address at http://usps-address-update-fees.net",
-        "DHL Express: Shipment failed due to unpaid customs duties. Pay immediately to clear delivery: http://dhl-package-tracking-hold.info",
-        "FedEx Notification: Your parcel requires address verification. Please visit http://fedex-delivery-redirection.com to reschedule.",
+        # Crypto
+        "Verify your {Wallet} wallet recovery phrase within 24 hours to avoid losing access: {Url}",
+        "Security Alert: A login attempt was made on your {Wallet} from {City}. Confirm seed phrase: {Url}",
         
-        # Utility bill scams
-        "ALERT: Your electricity connection will be disconnected tonight at 9:30 PM due to unpaid monthly bill. Call helpline: 89028-19302 immediately.",
-        "Electricity Board: Your electricity bill is past due. To avoid immediate power shutoff, pay now: http://electricity-bill-pay.xyz",
-        "Attention: Electricity connection will be cut today. Pay pending due of Rs 4890 at http://utility-bill-payment.online",
+        # OTP / Credential Theft
+        "Your {Brand} account has been compromised. Log in immediately to reset your password: {Url}",
+        "Urgent: Verification required for your {Brand} subscription. Click here to update your billing details: {Url}",
+        "We detected a suspicious login on your {Brand} account. If this was not you, secure your account at {Url}",
         
-        # Job / Work from home scams
-        "Earn Rs 2000-5000 daily by liking YouTube videos. Work from home, no experience needed. Join WhatsApp group: http://whatsapp-job-scam.xyz",
-        "Part-time job opportunity: Earn easy money online. Work just 1 hour daily. Guaranteed income. Join Telegram: http://telegram-job-group.link",
-        "Congratulations! You are selected for a part-time job. Daily income up to Rs 8000. Start now: http://work-from-home-rewards.click",
-        "Make money fast with no investment! Daily payout. Click here to sign up: http://easy-money-guaranteed.xyz",
+        # Courier / Delivery
+        "India Post: Your parcel has arrived at the sorting center but has an incorrect address. Fix it now: {Url}",
+        "USPS Update: Package delivery failed due to unpaid customs fee of {Amount}. Update details: {Url}",
+        "DHL Express: Your shipment from {City} is on hold. Resolve delivery issues at {Url}",
+        "FedEx Alert: Address correction required for parcel delivery. Reschedule at {Url}",
         
-        # Reward / Lottery scams
-        "You have won a cash prize of Rs 25 Lakhs in Kaun Banega Crorepati (KBC) lottery. Claim your prize on WhatsApp: http://kbc-lottery-winner.online",
-        "Congratulations! Your phone number has won a free iPhone 15 Pro. Claim your reward now: http://win-iphone15-now.xyz",
-        "You are the lucky winner of a $1000 Amazon Gift Card! Click here to redeem: https://win-giftcard-free.xyz/claim",
-        "Congratulations! You won the weekly jackpot! Tap link to claim your reward of $10,000 cash: http://lucky-winner-rewards.top",
+        # Utility bills
+        "Dear customer, your electricity connection will be cut off tonight at 9:30 PM due to pending bill of {Amount}. Please call helpline: {Phone} immediately.",
+        "Utility Board: Immediate power disconnection alert. Pay your unpaid bill at {Url} to avoid shutoff.",
+        "Your monthly gas bill is overdue. Pay {Amount} now at {Url} to prevent service termination.",
         
-        # OTP / credential theft
-        "URGENT: Your Chase account has been locked due to suspicious activity. Please verify your identity immediately: http://chase-banking-alert.net/verify",
-        "PayPal: We detected a login from an unknown device. If this was not you, please secure your account immediately: http://secure-login-paypal.com/signin",
-        "Your Netflix subscription has expired. Update your billing information to continue streaming: http://netflix-verify-account.info",
-        "Google: Someone has your password. Protect your account now at http://google-security-update-notice.com/security",
-        "Security Alert: Your Apple ID is locked. Click here to verify your account and restore access: http://verify-appleid-support.com",
-        "Verify your Metamask wallet seed phrase to prevent account suspension: http://metamask-restore-wallet.xyz/restore/wallet",
-        "Facebook Security: We noticed suspicious logins on your page. Verify ownership now: http://update-facebook-security.org",
-        "URGENT Action Required: Confirm your identity within 24 hours to keep your debit card active: http://bankofamerica-card-security.info",
-        "Steam Rewards: Claim your free Counter-Strike skins now! Log in to steam: http://steam-community-rewards.xyz"
+        # Job Scams
+        "Earn {Amount} daily by working part-time. No experience required. Start immediately on WhatsApp: {Url}",
+        "Part-time home job vacancy: Earn up to {Amount} per week by liking social media posts. Join Telegram: {Url}",
+        "Congratulations! You are selected for a work-from-home position. Daily wage of {Amount}. Register: {Url}",
+        "Make money online with zero investment! Earn {Amount} every week. Sign up now: {Url}",
+        
+        # Lottery / Rewards
+        "You have won a lottery prize of {Amount} from {Brand}! Contact customer service on WhatsApp to claim: {Url}",
+        "Congratulations! Your mobile number has been selected to win a free {Item}. Claim your reward: {Url}",
+        "Lucky Winner: You have won a {Brand} Gift Card worth {Amount}! Redeem your prize here: {Url}",
+        "Jackpot Alert: You are the winner of {Amount} cash! Click to transfer to your bank account: {Url}",
     ]
     
-    # Safe texts (label = 0)
-    safe_texts = [
-        "Hey! Are we still meeting for lunch today at 1 PM? Let me know.",
-        "Your verification code is 482910. Do not share this code with anyone.",
-        "Hi John, I've sent you the files for the project review. Let me know if you have any questions.",
-        "Can you pick up some milk and eggs on your way home? Thanks!",
-        "Thanks for subscription! Your receipt for order #83910 is attached. Netflix.",
+    # Templates for Safe texts (label = 0)
+    safe_templates = [
+        "Hey! Are we still meeting for lunch today at {Time}? Let me know.",
+        "Your {Brand} verification code is {Code}. Do not share this code with anyone.",
+        "Hi {Name}, I've sent you the files for the project review. Let me know if you have any questions.",
+        "Can you pick up some {Item} and eggs on your way home? Thanks!",
+        "Thanks for your subscription! Your receipt for order #{Code} is attached. {Brand}.",
         "Hey, just checking in to see how your mom is doing after the surgery.",
         "Don't forget to submit the report before the end of the day. Have a great weekend!",
-        "Hey buddy, happy birthday! Hope you have an awesome day and a great year ahead.",
-        "Your flight to New York is confirmed for tomorrow at 8:30 AM. Terminal 3, Gate 12.",
-        "The team meeting is rescheduled to 2:00 PM in the main conference room.",
-        "Your appointment with Dr. Smith is scheduled for Monday, Oct 12 at 10:00 AM.",
-        "Thanks for ordering from Amazon! Your item has been shipped and will arrive tomorrow.",
-        "Hi, are you free for a call sometime this afternoon? Need to discuss the marketing budget.",
+        "Hey {Name}, happy birthday! Hope you have an awesome day and a great year ahead.",
+        "Your flight to {City} is confirmed for tomorrow at {Time}. Terminal 3, Gate {Code}.",
+        "The team meeting is rescheduled to {Time} in the main conference room.",
+        "Your appointment with Dr. {Name} is scheduled for Monday at {Time}.",
+        "Thanks for ordering from {Brand}! Your item has been shipped and will arrive tomorrow.",
+        "Hi, are you free for a call sometime this afternoon? Need to discuss the budget.",
         "Just wanted to say thanks for the dinner last night. We had a wonderful time!",
         "Hey, did you watch the latest episode of that show? We need to talk about the ending!",
-        "Your monthly credit card statement is now available online. Log in to your secure portal to view it.",
+        "Your monthly credit card statement for {Bank} is now available online. Log in to view it.",
         "Hi there, your package from USPS has been delivered to your front porch. Thank you.",
-        "We are meeting at the park at 4 PM. Bring your running shoes!",
-        "Your Google security code is 901238. This is only valid for 10 minutes.",
+        "We are meeting at the park at {Time}. Bring your running shoes!",
+        "Your {Brand} security code is {Code}. This is only valid for 10 minutes.",
         "Hey! Can you send me the address of the restaurant? We are leaving now.",
-        "Hi, your SBI account has been credited with INR 5,000.00. Available balance is INR 23,450.00.",
-        "Your transaction at HDFC Bank of Rs. 1,200.00 was successful. Card ending in 4592.",
+        "Hi, your {Bank} account has been credited with INR {Amount}. Available balance is INR {Amount}.",
+        "Your transaction at {Bank} of Rs. {Amount} was successful. Card ending in {Code}.",
         "Dear Customer, welcome to NetBanking. Have a pleasant experience using our online services.",
         "Please find the attached bank statement for your credit card for the month of April.",
-        "Hello, this is to inform you that your delivery from DHL will arrive today between 2 PM and 5 PM.",
-        "Your package from Amazon is out for delivery. You can track it here: amazon.com/track",
+        "Hello, this is to inform you that your delivery from {Brand} will arrive today between 2 PM and 5 PM.",
+        "Your package from {Brand} is out for delivery. You can track it here: {Url}",
         "Hi, just reminding you that our weekly status meeting starts in 10 minutes.",
         "Dear employee, your monthly payslip for May is now available on the HR portal.",
         "Your appointment is confirmed. If you need to reschedule, please contact our help desk.",
-        "Hi, did you get a chance to review the presentation deck I shared yesterday?"
+        "Hi, did you get a chance to review the presentation deck I shared yesterday?",
     ]
-    
-    # Generate 300 scam and 300 safe texts (600 total)
+
+    # Placeholder lists for randomized generation
+    users = ["Customer", "User", "Client", "Cardholder", "SBI Member"]
+    banks = ["SBI", "YONO SBI", "HDFC Bank", "ICICI Bank", "Paytm", "Axis Bank", "Kotak Bank", "Chase", "Wells Fargo", "Bank of America"]
+    brands = ["Google", "Microsoft", "Facebook", "Amazon", "Netflix", "Apple", "Spotify", "DHL", "FedEx", "India Post"]
+    wallets = ["Metamask", "Coinbase", "TrustWallet", "Blockchain"]
+    cities = ["Delhi", "Mumbai", "Bangalore", "New York", "London", "Chicago", "Dubai"]
+    names = ["John", "Sarah", "Emily", "David", "Rajesh", "Priya", "Amit", "Jessica", "Smith", "Sharma"]
+    items = ["milk", "bread", "coffee", "grocery", "iPhone 15 Pro", "Samsung S24 Ultra", "iPad Air"]
+    times = ["1:00 PM", "3:30 PM", "9:00 AM", "6:15 PM", "12 noon"]
+    urls = [
+        "http://sbi-kyc-verify.net", "http://yono-sbi-alert.online", "http://hdfc-security-login.info",
+        "http://paytm-wallet-update.xyz", "http://icicibank-secure.org", "http://netflix-billing-update.xyz",
+        "http://verify-appleid-support.com", "http://metamask-restore-wallet.xyz", "http://usps-address-update-fees.net",
+        "http://indiapost-delivery-fees.xyz", "http://whatsapp-job-scam.xyz", "http://telegram-job-group.link"
+    ]
+    safe_urls = ["amazon.com/track", "fedex.com/track", "dhl.com/tracking", "github.com", "google.com"]
+    phones = ["89028-19302", "98122-38291", "88291-03928", "72019-38291"]
+
     all_texts = []
     labels = []
-    
-    for i in range(300):
-        scam_idx = i % len(scam_texts)
-        safe_idx = i % len(safe_texts)
-        
-        # Add slight modifications for variety
-        scam_text = scam_texts[scam_idx]
-        if i % 3 == 0:
-            scam_text = scam_text.replace("URGENT:", "IMMEDIATE:")
-            scam_text = scam_text.replace("Dear Customer,", "Dear User,")
-        elif i % 3 == 1:
-            scam_text = scam_text.replace("Click here", "Log in now")
-            scam_text = scam_text.replace("alert", "warning")
-            
-        safe_text = safe_texts[safe_idx]
-        if i % 3 == 0:
-            safe_text = safe_text.replace("Hey!", "Hello,")
-        elif i % 3 == 1:
-            safe_text = safe_text.replace("buddy", "friend")
-            
+
+    # Generate 500 scam and 500 safe messages (1000 total)
+    for i in range(500):
+        # 1. Generate Scam Text
+        tmpl_scam = random.choice(scam_templates)
+        scam_text = tmpl_scam.format(
+            User=random.choice(users),
+            Bank=random.choice(banks),
+            Brand=random.choice(brands),
+            Wallet=random.choice(wallets),
+            City=random.choice(cities),
+            Url=random.choice(urls),
+            Amount=f"Rs. {random.randint(1000, 50000)}" if random.random() > 0.5 else f"${random.randint(50, 1000)}",
+            Phone=random.choice(phones),
+            Item=random.choice(items[:4])
+        )
         all_texts.append(scam_text)
         labels.append(1)
+
+        # 2. Generate Safe Text
+        tmpl_safe = random.choice(safe_templates)
+        safe_text = tmpl_safe.format(
+            Name=random.choice(names),
+            Brand=random.choice(brands),
+            Bank=random.choice(banks),
+            City=random.choice(cities),
+            Item=random.choice(items[:4]),
+            Time=random.choice(times),
+            Code=str(random.randint(100000, 999999)),
+            Amount=f"{random.randint(100, 5000)}.00" if random.random() > 0.5 else f"Rs. {random.randint(500, 15000)}",
+            Url=random.choice(safe_urls)
+        )
         all_texts.append(safe_text)
         labels.append(0)
 
@@ -236,3 +289,4 @@ def generate_text_dataset():
 if __name__ == "__main__":
     generate_url_dataset()
     generate_text_dataset()
+

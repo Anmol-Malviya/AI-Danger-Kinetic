@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
 import {
-  FiShield,
   FiUser,
   FiLock,
   FiEye,
@@ -12,6 +11,7 @@ import {
   FiCheckCircle,
   FiZap,
 } from "react-icons/fi";
+import { Logo } from "./Logo";
 
 import { API_BASE_URL } from "../config";
 
@@ -265,12 +265,12 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
               <div className="absolute w-24 h-24 rounded-full border border-cyber-primary/15 animate-ping" style={{ animationDuration: "3s" }} />
               <div className="absolute w-16 h-16 rounded-full border border-cyber-primary/20 animate-ping" style={{ animationDuration: "2s", animationDelay: "0.5s" }} />
               <motion.div 
-                className="relative p-5 bg-cyber-primary/10 border border-cyber-primary/30 rounded-2xl"
+                className="relative p-3 bg-cyber-primary/10 border border-cyber-primary/30 rounded-2xl"
                 whileHover={{ scale: 1.05, borderColor: "rgba(6,182,212,0.6)" }}
                 transition={{ duration: 0.2 }}
                 style={{ boxShadow: "0 0 30px rgba(6,182,212,0.15), inset 0 1px 0 rgba(6,182,212,0.1)" }}
               >
-                <FiShield className="text-4xl text-cyber-primary" />
+                <Logo size={48} />
                 {/* Inner shimmer */}
                 <div className="absolute inset-0 rounded-2xl shimmer" />
               </motion.div>
@@ -485,7 +485,6 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
               disabled={isLoading}
               onMouseMove={handleMouseMove}
               onMouseLeave={handleMouseLeave}
-              style={{ x: btnX, y: btnY }}
               whileTap={{ scale: 0.97 }}
               className="w-full py-3.5 font-display font-extrabold tracking-widest rounded-xl text-slate-950 btn-cyber disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 relative overflow-hidden"
               style={{

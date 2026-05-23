@@ -12,9 +12,10 @@ import { API_BASE_URL } from "../config";
 interface TextScannerProps {
   onScanComplete: () => void;
   userId: string | null;
+  hideHeader?: boolean;
 }
 
-export const TextScanner: React.FC<TextScannerProps> = ({ onScanComplete, userId }) => {
+export const TextScanner: React.FC<TextScannerProps> = ({ onScanComplete, userId, hideHeader }) => {
   const [textInput, setTextInput] = useState("");
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<TextScanResult | null>(null);
@@ -144,14 +145,16 @@ export const TextScanner: React.FC<TextScannerProps> = ({ onScanComplete, userId
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Title */}
-      <div className="border-b border-cyber-border pb-4">
-        <h2 className="text-2xl font-display font-extrabold text-white tracking-wide">
-          SMS & EMAIL THREAT ANALYZER
-        </h2>
-        <p className="text-xs text-slate-400 font-mono">
-          Paste the textual content of a suspicious email, message, or chat to inspect manipulative language.
-        </p>
-      </div>
+      {!hideHeader && (
+        <div className="border-b border-cyber-border pb-4">
+          <h2 className="text-2xl font-display font-extrabold text-white tracking-wide">
+            SMS & EMAIL THREAT ANALYZER
+          </h2>
+          <p className="text-xs text-slate-400 font-mono">
+            Paste the textual content of a suspicious email, message, or chat to inspect manipulative language.
+          </p>
+        </div>
+      )}
 
       {/* Form input */}
       <form onSubmit={handleScan} className="space-y-3">
