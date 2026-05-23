@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>AI Danger Kinetic</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app">
+
+    <!-- Row 1: Brand + Toggle -->
+    <div class="top-bar">
+      <div class="brand">
+        <div class="brand-dot" id="brand-dot"></div>
+        <span class="brand-name">AI DANGER KINETIC</span>
+      </div>
+      <div class="toggle" id="toggle">
+        <div class="knob" id="knob"></div>
+      </div>
+    </div>
+
+    <!-- Row 2: Domain + Status chip -->
+    <div class="domain-row">
+      <span class="domain" id="domain-name">—</span>
+      <span class="chip" id="chip">SCANNING</span>
+    </div>
+
+    <!-- Warning block — only shown when threat detected -->
+    <div class="warning-block" id="warning-block" style="display:none;">
+      <div class="score-row">
+        <span class="score-label">THREAT SCORE</span>
+        <span class="score-val" id="score-val">0%</span>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill" id="bar-fill"></div>
+      </div>
+      <ul class="reasons" id="reasons"></ul>
+    </div>
+
+    <!-- Row last: Dashboard -->
+    <div class="bottom-bar">
+      <button class="dash-btn" id="open-dashboard">Open Dashboard ↗</button>
+    </div>
+
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

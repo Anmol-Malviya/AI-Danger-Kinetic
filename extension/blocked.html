@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>AI Danger Kinetic — Threat Blocked</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="blocked.css">
+</head>
+<body>
+
+  <!-- Subtle animated bg -->
+  <div class="bg-mesh"></div>
+
+  <div class="center">
+
+    <!-- Floating pill tabs on top -->
+    <div class="pill-tabs">
+      <span class="pill-tab active">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Blocked
+      </span>
+      <span class="pill-tab" id="pill-level">DANGEROUS</span>
+      <span class="pill-tab dimmed" id="pill-conf">100% confidence</span>
+    </div>
+
+    <!-- Main card -->
+    <div class="card">
+
+      <!-- Card header -->
+      <div class="card-header">
+        <div class="header-left">
+          <p class="eyebrow">BLOCKED URL</p>
+          <p class="blocked-url" id="blocked-url">Analyzing…</p>
+        </div>
+        <div class="badge-wrap">
+          <span class="danger-badge" id="threat-badge">DANGEROUS</span>
+        </div>
+      </div>
+
+      <!-- Confidence track -->
+      <div class="track-wrap">
+        <div class="track">
+          <div class="track-fill" id="track-fill"></div>
+          <div class="track-thumb" id="track-thumb"></div>
+        </div>
+        <div class="track-labels">
+          <span>0%</span>
+          <span>50%</span>
+          <span id="track-val">100%</span>
+        </div>
+      </div>
+
+      <!-- Heuristics -->
+      <div class="reasons-wrap" id="reasons-wrap" style="display:none;">
+        <ul class="reasons" id="reasons"></ul>
+      </div>
+
+      <!-- Divider -->
+      <div class="card-divider"></div>
+
+      <!-- Actions -->
+      <div class="card-actions">
+        <button class="btn-back" id="btn-back">← Go Back to Safety</button>
+        <button class="btn-skip" id="btn-bypass">Continue anyway</button>
+      </div>
+
+    </div>
+
+    <!-- Footer label -->
+    <p class="footer-label">Protected by <strong>AI Danger Kinetic</strong> · ML Threat Engine</p>
+
+  </div>
+
+  <script src="blocked.js"></script>
+</body>
+</html>

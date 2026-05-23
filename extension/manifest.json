@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "AI Danger Kinetic - Threat Guardian",
+  "version": "1.0.0",
+  "description": "Real-time AI-powered threat analysis and domain protection using Scikit-Learn models.",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "tabs",
+    "webNavigation"
+  ],
+  "host_permissions": [
+    "https://ai-danger-kinetic-backend.onrender.com/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*",
+    "http://*/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/default_16.png",
+      "32": "icons/default_32.png",
+      "48": "icons/default_48.png",
+      "128": "icons/default_128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/default_16.png",
+    "32": "icons/default_32.png",
+    "48": "icons/default_48.png",
+    "128": "icons/default_128.png"
+  }
+}

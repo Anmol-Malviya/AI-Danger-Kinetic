@@ -1,0 +1,369 @@
+:root {
+  --bg: #030712;
+  --card-bg: rgba(17, 24, 39, 0.7);
+  --border: rgba(255, 255, 255, 0.07);
+  --text-primary: #f9fafb;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  
+  --danger: #ef4444;
+  --danger-glow: rgba(239, 68, 68, 0.4);
+  --danger-dim: rgba(239, 68, 68, 0.1);
+  --warning: #f59e0b;
+  --warning-dim: rgba(245, 158, 11, 0.15);
+  
+  --primary: #06b6d4;
+  --primary-glow: rgba(6, 182, 212, 0.5);
+  --primary-dim: rgba(6, 182, 212, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  width: 100%;
+  height: 100vh;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text-primary);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── Moving Mesh Background ── */
+.bg-mesh {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 0;
+  background: 
+    radial-gradient(circle at 10% 20%, rgba(239, 68, 68, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.06) 0%, transparent 45%),
+    radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.5) 0%, transparent 100%);
+  background-size: 200% 200%;
+  animation: mesh-movement 20s ease infinite;
+}
+
+@keyframes mesh-movement {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ── Container Layout ── */
+.center {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 440px;
+  padding: 20px;
+  animation: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Pill Tabs above card ── */
+.pill-tabs {
+  display: flex;
+  gap: 8px;
+  background: rgba(31, 41, 55, 0.5);
+  border: 1px solid var(--border);
+  padding: 4px 6px;
+  border-radius: 9999px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.pill-tab {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  transition: all 0.25s ease;
+}
+
+.pill-tab svg {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pill-tab.active {
+  background: var(--danger-dim);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #f87171;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.pill-tab.dimmed {
+  opacity: 0.75;
+  font-size: 10px;
+  font-weight: 500;
+  padding-left: 8px;
+}
+
+/* ── Card Styling ── */
+.card {
+  width: 100%;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 24px;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 
+    0 15px 35px rgba(0, 0, 0, 0.5),
+    0 0 50px rgba(239, 68, 68, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  border-color: rgba(239, 68, 68, 0.18);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.6),
+    0 0 60px rgba(239, 68, 68, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* ── Card Header ── */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  gap: 16px;
+}
+
+.header-left {
+  flex: 1;
+  overflow: hidden;
+}
+
+.eyebrow {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.blocked-url {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 250px;
+}
+
+.badge-wrap {
+  flex-shrink: 0;
+}
+
+.danger-badge {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: var(--danger-dim);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+/* ── Track (Confidence Slider) ── */
+.track-wrap {
+  margin-bottom: 20px;
+}
+
+.track {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 9999px;
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.track-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, var(--warning), var(--danger));
+  box-shadow: 0 0 12px var(--danger-glow);
+  transition: width 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.track-thumb {
+  position: absolute;
+  top: 50%;
+  left: 0%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid var(--danger);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+  transition: left 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.track-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+#track-val {
+  color: #f87171;
+  font-weight: 700;
+}
+
+/* ── Heuristics Details Box ── */
+.reasons-wrap {
+  background: rgba(239, 68, 68, 0.03);
+  border: 1px solid rgba(239, 68, 68, 0.12);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 20px;
+  animation: expand-down 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes expand-down {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.reasons {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reasons li {
+  font-size: 11.5px;
+  color: #d1d5db;
+  line-height: 1.45;
+  padding-left: 18px;
+  position: relative;
+}
+
+.reasons li::before {
+  content: "✦";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #ef4444;
+  font-size: 10px;
+}
+
+/* ── Divider ── */
+.card-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.05);
+  margin-bottom: 20px;
+}
+
+/* ── Actions Row ── */
+.card-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-back {
+  flex: 1.3;
+  background: var(--text-primary);
+  color: #030712;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 12px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+.btn-back:hover {
+  background: #ffffff;
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 16px rgba(255, 255, 255, 0.15);
+}
+
+.btn-back:active {
+  transform: translateY(0);
+}
+
+.btn-skip {
+  flex: 1;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 12px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.btn-skip:hover {
+  background: rgba(239, 68, 68, 0.05);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  transform: translateY(-1px);
+}
+
+.btn-skip:active {
+  transform: translateY(0);
+}
+
+/* ── Footer ── */
+.footer-label {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 8px;
+}
+
+.footer-label strong {
+  color: var(--text-secondary);
+}
