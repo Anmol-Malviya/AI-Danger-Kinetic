@@ -132,17 +132,14 @@ def generate_url_dataset():
             safe_urls.append(f"https://{domain}{path}")
 
     # Combine and save
-    dirs = ["dataset", os.path.join("backend", "dataset")]
-    for d in dirs:
-        if os.path.exists(os.path.dirname(d)) or d == "dataset":
-            os.makedirs(d, exist_ok=True)
-            with open(os.path.join(d, "urls.csv"), "w", newline="", encoding="utf-8") as f:
-                writer = csv.writer(f)
-                writer.writerow(["url", "label"])
-                for url in phishing_urls:
-                    writer.writerow([url, 1])
-                for url in safe_urls:
-                    writer.writerow([url, 0])
+    os.makedirs("dataset", exist_ok=True)
+    with open("dataset/urls.csv", "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["url", "label"])
+        for url in phishing_urls:
+            writer.writerow([url, 1])
+        for url in safe_urls:
+            writer.writerow([url, 0])
             
     print(f"Generated {len(phishing_urls) + len(safe_urls)} URLs (phishing: {len(phishing_urls)}, safe: {len(safe_urls)})")
 
@@ -280,15 +277,12 @@ def generate_text_dataset():
         labels.append(0)
 
     # Save
-    dirs = ["dataset", os.path.join("backend", "dataset")]
-    for d in dirs:
-        if os.path.exists(os.path.dirname(d)) or d == "dataset":
-            os.makedirs(d, exist_ok=True)
-            with open(os.path.join(d, "messages.csv"), "w", newline="", encoding="utf-8") as f:
-                writer = csv.writer(f)
-                writer.writerow(["text", "label"])
-                for text, label in zip(all_texts, labels):
-                    writer.writerow([text, label])
+    os.makedirs("dataset", exist_ok=True)
+    with open("dataset/messages.csv", "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["text", "label"])
+        for text, label in zip(all_texts, labels):
+            writer.writerow([text, label])
             
     print(f"Generated {len(all_texts)} messages (scam: {labels.count(1)}, safe: {labels.count(0)})")
 

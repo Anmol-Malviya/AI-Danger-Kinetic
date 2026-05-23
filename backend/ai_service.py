@@ -144,7 +144,9 @@ class AIDangerKineticModel:
         if not loaded_url:
             import pandas as pd
             print("Training URL classifier...")
-            dataset_path = os.path.join(os.path.dirname(self.models_dir), "dataset", "urls.csv")
+            dataset_path = os.path.join(self.models_dir, "dataset", "urls.csv")
+            if not os.path.exists(dataset_path):
+                dataset_path = os.path.join(os.path.dirname(self.models_dir), "dataset", "urls.csv")
             if not os.path.exists(dataset_path):
                 raise FileNotFoundError(f"Dataset path {dataset_path} not found. Run dataset generator first.")
                 
@@ -188,7 +190,9 @@ class AIDangerKineticModel:
         if not loaded_text:
             import pandas as pd
             print("Training text classifier...")
-            dataset_path = os.path.join(os.path.dirname(self.models_dir), "dataset", "messages.csv")
+            dataset_path = os.path.join(self.models_dir, "dataset", "messages.csv")
+            if not os.path.exists(dataset_path):
+                dataset_path = os.path.join(os.path.dirname(self.models_dir), "dataset", "messages.csv")
             if not os.path.exists(dataset_path):
                 raise FileNotFoundError(f"Dataset path {dataset_path} not found. Run dataset generator first.")
                 
