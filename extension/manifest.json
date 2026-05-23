@@ -33,5 +33,12 @@
     "32": "icons/default_32.png",
     "48": "icons/default_48.png",
     "128": "icons/default_128.png"
-  }
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
 }

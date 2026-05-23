@@ -206,50 +206,116 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
   }
 });
 
+const TEXT_API_URL = "https://ai-danger-kinetic-backend.onrender.com/scan-text";
+
+async function scanText(text) {
+  try {
+    const response = await fetch(TEXT_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ text })
+    });
+    if (response.ok) {
+      return await response.json();
+    }
+  } catch (e) {
+    console.error("AI Danger Kinetic: Backend text scan error.", e);
+  }
+  return null;
+}
+
 // Listen to messages from popup or blocked pages
-chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "toggleGuardian") {
     // Update badge for active tab
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tab) {
-      if (!message.isEnabled) {
-        await updateBadge(tab.id, "disabled");
-      } else {
-        // Force rescan/badge update
-        try {
-          if (tab.url && (tab.url.startsWith("http://") || tab.url.startsWith("https://"))) {
-            await updateBadge(tab.id, "scanning");
-            const scanResult = await scanUrl(tab.url);
-            if (scanResult) {
-              setCachedResult(tab.url, scanResult);
-              await chrome.storage.local.set({ [`tab_status_${tab.id}`]: scanResult });
-              await updateBadge(tab.id, scanResult.threat_level, scanResult.confidence);
+    (async () => {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab) {
+        if (!message.isEnabled) {
+          await updateBadge(tab.id, "disabled");
+        } else {
+          // Force rescan/badge update
+          try {
+            if (tab.url && (tab.url.startsWith("http://") || tab.url.startsWith("https://"))) {
+              await updateBadge(tab.id, "scanning");
+              const scanResult = await scanUrl(tab.url);
+              if (scanResult) {
+                setCachedResult(tab.url, scanResult);
+                await chrome.storage.local.set({ [`tab_status_${tab.id}`]: scanResult });
+                await updateBadge(tab.id, scanResult.threat_level, scanResult.confidence);
+              }
             }
+          } catch (e) {}
+        }
+      }
+    })();
+    return false;
+  }
+  
+  if (message.action === "recheckTab") {
+    (async () => {
+      // Clear cache for this URL
+      scanCache.delete(message.url);
+      
+      // If domain is whitelisted, redirect back to the original URL if they are currently on blocked page
+      const urlObj = new URL(message.url);
+      const settings = await chrome.storage.local.get({ whitelist: [] });
+      
+      if (settings.whitelist.includes(urlObj.hostname)) {
+        await chrome.storage.local.set({
+          [`tab_status_${message.tabId}`]: { threat_level: "safe", confidence: 0, details: ["User Trusted Domain"] }
+        });
+        await updateBadge(message.tabId, "safe");
+        
+        // If the current tab url is blocked.html, redirect back to the original URL
+        try {
+          const tab = await chrome.tabs.get(message.tabId);
+          if (tab && tab.url && tab.url.includes("blocked.html")) {
+            await chrome.tabs.update(message.tabId, { url: message.url });
           }
         } catch (e) {}
       }
-    }
-  } else if (message.action === "recheckTab") {
-    // Clear cache for this URL
-    scanCache.delete(message.url);
-    
-    // If domain is whitelisted, redirect back to the original URL if they are currently on blocked page
-    const urlObj = new URL(message.url);
-    const settings = await chrome.storage.local.get({ whitelist: [] });
-    
-    if (settings.whitelist.includes(urlObj.hostname)) {
-      await chrome.storage.local.set({
-        [`tab_status_${message.tabId}`]: { threat_level: "safe", confidence: 0, details: ["User Trusted Domain"] }
+    })();
+    return false;
+  }
+
+  if (message.action === "checkUrlScam") {
+    scanUrl(message.url)
+      .then(result => {
+        sendResponse(result);
+      })
+      .catch(err => {
+        sendResponse({ error: err.message });
       });
-      await updateBadge(message.tabId, "safe");
-      
-      // If the current tab url is blocked.html, redirect back to the original URL
-      try {
-        const tab = await chrome.tabs.get(message.tabId);
-        if (tab && tab.url && tab.url.includes("blocked.html")) {
-          await chrome.tabs.update(message.tabId, { url: message.url });
+    return true; // Keep channel open for async response
+  }
+
+  if (message.action === "checkTextScam") {
+    scanText(message.text)
+      .then(result => {
+        sendResponse(result);
+      })
+      .catch(err => {
+        sendResponse({ error: err.message });
+      });
+    return true; // Keep channel open for async response
+  }
+
+  if (message.action === "scamStatusUpdate") {
+    const tabId = sender.tab ? sender.tab.id : null;
+    if (tabId) {
+      chrome.storage.local.set({
+        [`tab_status_${tabId}`]: {
+          threat_level: message.threat_level,
+          confidence: message.confidence,
+          details: message.details
         }
-      } catch (e) {}
+      }).then(() => {
+        updateBadge(tabId, message.threat_level, message.confidence);
+      });
     }
+    return false;
   }
 });
